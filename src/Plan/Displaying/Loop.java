@@ -17,7 +17,7 @@ public class Loop extends JPanel implements MouseListener{
     
     public int distance = 10;
     public int buttonSizeX;
-    public Block[] blocks, blocks2;
+    public Block[] blocks;
     
     
     public void paint(Graphics g){
@@ -132,23 +132,21 @@ public class Loop extends JPanel implements MouseListener{
         draw.drawLine(distance, distance, this.getWidth()-2*distance, distance);
         
         //load blocks
-        if(blocks==null || blocks2==null){
+        if(blocks==null){
             SaverLoader sl = new SaverLoader();
-            blocks = sl.initialize(blocks, "bloki.bl");
+            blocks = sl.initialize(blocks);
             blocks = sl.loadBlocks(blocks);
-            blocks2 = sl.initialize(blocks2, "bloki2.bl");
-            blocks2 = sl.loadBlocks(blocks2);
         }
         
         //set
         for(Block block: blocks){
             if(block.dayOfWeek==Switch.chosenDay){
-                if(block.startsAtHours<=startHour){
-                    startHour = block.startsAtHours-1;
+                if(block.startsAt/60<=startHour){
+                    startHour = block.startsAt/60-1;
                 }
                 int length = block.lengthMinutes/60;
-                if(block.startsAtHours+length>=endHour){
-                    endHour = block.startsAtHours+length+1;
+                if(block.startsAt/60+length>=endHour){
+                    endHour = block.startsAt/60+length+1;
                 }
             }
         }
@@ -198,9 +196,9 @@ public class Loop extends JPanel implements MouseListener{
         for(Block block: blocks){
             if(block.dayOfWeek==Switch.chosenDay){
                 draw.setColor(Color.black);
-                float mShift = block.startsAtMinutes/60f;
+                float mShift = (block.startsAt%60)/60f;
                 mShift*=hourSize;
-                int hShift = (block.startsAtHours-startHour)*hourSize;
+                int hShift = ((block.startsAt/60)-startHour)*hourSize;
                 int shift = (int)mShift+hShift;
                 
                 int blockSize = (int) ((block.lengthMinutes/60f)*hourSize);

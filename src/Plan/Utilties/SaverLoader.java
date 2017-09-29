@@ -8,66 +8,78 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class SaverLoader {
     
-     private final String direction = "C:/Users/hp/Documents/Harmonogram/";
-     private String fileName;
+     private final String direction = "";
+     private String fileName = "Blocks.json";
      private File file = null;
     
-    public Block[] initialize(Block[] blocks, String nameOfFile){
-        this.fileName = nameOfFile;
+    public Block[] initialize(Block[] blocks){
+        
         file = new File(direction+fileName);
         int size = 0;
-        if(!file.exists()){
-            try{
-                file.createNewFile();
-            } catch(IOException argh){
-                
+        
+        //load JSON text
+        String JSONText = "";
+        try {
+            Scanner in = new Scanner(new FileReader(direction+fileName));
+            while(in.hasNext()){
+                JSONText += in.next();
             }
+
+            in.close();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(SaverLoader.class.getName()).log(Level.SEVERE, null, ex);
         }
-         try {
-             Scanner in = new Scanner(new FileReader(direction+fileName));
-             if(in.hasNext()){
-                 size = Integer.valueOf(in.next());
-             }
-             in.close();
-         } catch (FileNotFoundException ex) {
-             Logger.getLogger(SaverLoader.class.getName()).log(Level.SEVERE, null, ex);
-         }
-         
-         blocks = new Block[size];
-         for(int count = 0; count<blocks.length; count++){
-             blocks[count] = new Block();
-         }
-         return blocks;
+        
+        //turn JSON text into an object
+        JSONObject obj = new JSONObject(JSONText);
+        JSONArray array = obj.getJSONArray("array");
+        
+        //initialize array
+        blocks = new Block[array.length()];
+        for(int count = 0; count<blocks.length; count++){
+            blocks[count] = new Block();
+        }
+        return blocks;
     }
     public Block[] loadBlocks(Block[] blocks){
-        this.fileName = fileName;
-        int count = 0;
+        String JSONText = "";
+        
+        //load JSON text
         try {
-             Scanner in = new Scanner(new FileReader(direction+fileName));
-             while(in.hasNext()){
-                 String next = in.nextLine();
-                 if(next.equals("-")){
-                     Block bl = new Block();
-                     bl.dayOfWeek = Integer.valueOf(in.nextLine());
-                     bl.place = in.nextLine();
-                     bl.room = in.nextLine();
-                     bl.type = in.nextLine();
-                     bl.teacher = in.nextLine();
-                     bl.startsAtHours = Integer.valueOf(in.nextLine());
-                     bl.startsAtMinutes = Integer.valueOf(in.nextLine());
-                     bl.lengthMinutes = Integer.valueOf(in.nextLine());
-                     bl.title = in.nextLine();
-                     blocks[count] = bl;
-                     count++;
-                 }
-             }
-             in.close();
-         } catch (FileNotFoundException ex) {
-             Logger.getLogger(SaverLoader.class.getName()).log(Level.SEVERE, null, ex);
-         }
+            Scanner in = new Scanner(new FileReader(direction+fileName));
+            while(in.hasNext()){
+                JSONText += in.next();
+            }
+            in.close();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(SaverLoader.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        //turn into an object
+        JSONObject obj = new JSONObject(JSONText);
+        JSONArray array = obj.getJSONArray("array");
+        
+        for(int i = 0; i<blocks.length; i++){
+            //pass ints
+            blocks[i].dayOfWeek = array.getJSONObject(i).getInt("dayOfWeek");
+            blocks[i].startsAt = array.getJSONObject(i).getInt("startsAt");
+            blocks[i].lengthMinutes = array.getJSONObject(i).getInt("length");
+
+            
+            //pass strings
+            blocks[i].title = array.getJSONObject(i).getString("title");
+            blocks[i].place = array.getJSONObject(i).getString("place");
+            blocks[i].room = array.getJSONObject(i).getString("room");
+            blocks[i].teacher = array.getJSONObject(i).getString("teacher");
+            blocks[i].type = array.getJSONObject(i).getString("type");
+        }
+        
+        
         return blocks;
     }
 }

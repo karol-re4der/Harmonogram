@@ -8,8 +8,7 @@ public class Block {
     public String room;
     public String type;
     public String teacher;
-    public int startsAtHours;
-    public int startsAtMinutes;
+    public int startsAt;
     public int lengthMinutes;
     public String title;
     
@@ -22,14 +21,12 @@ public class Block {
     public Block(){
         
     }
-    public Block(int day, String place, String room, String type, String teacher, int startsAtHours, int startsAtMinutes, int lengthMinutes, String title){
+    public Block(int day, String place, String room, String type, String teacher, int startsAt, int lengthMinutes, String title){
         this.dayOfWeek = day;
         this.place = place;
         this.place = room;
         this.type = type;
         this.teacher = teacher;
-        this.startsAtHours = startsAtHours;
-        this.startsAtMinutes = startsAtMinutes;
         this.lengthMinutes = lengthMinutes;
         this.title = title;
     }
