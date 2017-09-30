@@ -7,4 +7,5 @@ public class Switch {
     public static int chosenDay = 0;
     public static Calendar chosenDate;
     public static boolean grid;
+    public static boolean addingMode = false;
 }

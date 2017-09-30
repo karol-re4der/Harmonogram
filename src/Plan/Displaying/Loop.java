@@ -11,14 +11,17 @@ import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Calendar;
+import java.util.LinkedList;
 import javax.swing.JPanel;
 
 public class Loop extends JPanel implements MouseListener{
     
     public int distance = 10;
     public int buttonSizeX;
-    public Block[] blocks;
-    
+    public LinkedList<Block> blocks;
+    private int hourSize = 0;
+    private int startHour = 24;
+    private int endHour = 0;
     
     public void paint(Graphics g){
         Graphics2D draw = (Graphics2D)g;
@@ -36,6 +39,21 @@ public class Loop extends JPanel implements MouseListener{
         else if(Switch.switcher==1){
             drawSelectedDay(draw);
         }
+    }
+    
+    public void save(){
+        SaverLoader sload = new SaverLoader();
+        sload.saveBlocks(blocks);
+    }
+    
+    public void removeBlock(){
+        for(int i = 0; i<blocks.size(); i++){
+            if(blocks.get(i).active){
+                blocks.remove(i);
+                break;
+            }
+        }
+        save();
     }
     
     private void drawDaySelection(Graphics2D draw){
@@ -124,17 +142,16 @@ public class Loop extends JPanel implements MouseListener{
     }
 
     private void drawSelectedDay(Graphics2D draw){
-        int startHour = 24;
-        int endHour = 0;
-        int hourSize = 0;
+        
+        
         draw.setColor(Color.black);
         draw.drawLine(distance, distance+3*distance, this.getWidth()-2*distance, distance+3*distance);
         draw.drawLine(distance, distance, this.getWidth()-2*distance, distance);
         
         //load blocks
         if(blocks==null){
+            blocks = new LinkedList();
             SaverLoader sl = new SaverLoader();
-            blocks = sl.initialize(blocks);
             blocks = sl.loadBlocks(blocks);
         }
         
@@ -204,6 +221,9 @@ public class Loop extends JPanel implements MouseListener{
                 int blockSize = (int) ((block.lengthMinutes/60f)*hourSize);
                 
                 draw.setColor(Color.gray);
+                if(block.active){
+                    draw.setColor(Color.gray.brighter());
+                }
                 draw.fillRect(distance+shift, distance*5, blockSize, 10*distance);
                 draw.setColor(Color.black);
                 draw.drawRect(distance+shift, distance*5, blockSize, 10*distance);
@@ -269,11 +289,30 @@ public class Loop extends JPanel implements MouseListener{
         if(Switch.grid==true){
             draw.setColor(Color.gray.brighter());
         }
-        draw.fillRect(this.getWidth()-distance-60-60-distance, this.getHeight()-4*distance, 60, 3*distance);
+        draw.fillRect(this.getWidth()-distance-120-distance, this.getHeight()-4*distance, 60, 3*distance);
         draw.setColor(Color.black);
-        draw.drawRect(this.getWidth()-distance-60-60-distance, this.getHeight()-4*distance, 60, 3*distance);
-        draw.drawRect(this.getWidth()-distance-60+1-60-distance, this.getHeight()-4*distance+1, 60-2, 3*distance-2);
-        draw.drawString("Grid", this.getWidth()-60-60-distance, this.getHeight()-2*distance);
+        draw.drawRect(this.getWidth()-distance-120-distance, this.getHeight()-4*distance, 60, 3*distance);
+        draw.drawRect(this.getWidth()-distance-120+1-distance, this.getHeight()-4*distance+1, 60-2, 3*distance-2);
+        draw.drawString("Grid", this.getWidth()-120-distance, this.getHeight()-2*distance);
+        
+        //draw add button
+        draw.setColor(Color.gray);
+        if(Switch.addingMode==true){
+            draw.setColor(Color.gray.brighter());
+        }
+        draw.fillRect(this.getWidth()-180-distance*3, this.getHeight()-4*distance, 60, 3*distance);
+        draw.setColor(Color.black);
+        draw.drawRect(this.getWidth()-180-distance*3, this.getHeight()-4*distance, 60, 3*distance);
+        draw.drawRect(this.getWidth()-180+1-distance*3, this.getHeight()-4*distance+1, 60-2, 3*distance-2);
+        draw.drawString("Add", this.getWidth()-180-distance*2, this.getHeight()-2*distance);
+        
+        //draw remove button
+        draw.setColor(Color.gray);
+        draw.fillRect(this.getWidth()-240-distance*4, this.getHeight()-4*distance, 60, 3*distance);
+        draw.setColor(Color.black);
+        draw.drawRect(this.getWidth()-240-distance*4, this.getHeight()-4*distance, 60, 3*distance);
+        draw.drawRect(this.getWidth()-240+1-distance*4, this.getHeight()-4*distance+1, 60-2, 3*distance-2);
+        draw.drawString("Dlte", this.getWidth()-240-distance*3, this.getHeight()-2*distance);
             
     }
     
@@ -297,6 +336,7 @@ public class Loop extends JPanel implements MouseListener{
             }
         }
         else if(Switch.switcher==1){
+            //buttons
             if(e.getX()>=this.getWidth()-distance-60 && e.getX()<=this.getWidth()-distance){
                 if(e.getY()>=this.getHeight()-4*distance && e.getY()<=this.getHeight()-distance){
                     Switch.switcher = 0;
@@ -307,7 +347,37 @@ public class Loop extends JPanel implements MouseListener{
                     Switch.grid = !Switch.grid;
                 }
             }
+            else if(e.getX()>=this.getWidth()-180-distance*3 && e.getX()<=this.getWidth()-120-distance*3){
+                if(e.getY()>=this.getHeight()-4*distance && e.getY()<=this.getHeight()-distance){
+                    Switch.addingMode = !Switch.addingMode;
+                }
+            }
+            else if(e.getX()>=this.getWidth()-240-distance*4 && e.getX()<=this.getWidth()-180-distance*4){
+                if(e.getY()>=this.getHeight()-4*distance && e.getY()<=this.getHeight()-distance){
+                    removeBlock();
+                }
+            }
+            
+            //compute click-time
+            else{
+                int timeFrame = (this.getWidth()-distance*2);
+                int hourRange = timeFrame/hourSize;
+                int positionAt = e.getX()-distance;
+                int timeAt = (int) ((double)positionAt/timeFrame*hourRange*60)+startHour*60;
+
+                //removing
+                for(Block i: blocks){
+                    if(timeAt>=i.startsAt && timeAt<=i.startsAt+i.lengthMinutes){
+                        i.active = true;
+                    }
+                    else{
+                        i.active = false;
+                    }
+                }
+            }
         }
+        
+        
         this.repaint();
     }
 

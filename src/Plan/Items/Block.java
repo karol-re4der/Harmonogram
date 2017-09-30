@@ -12,11 +12,8 @@ public class Block {
     public int lengthMinutes;
     public String title;
     
-    //optional
-    public int day;
-    public int month;
-    public int year;
-    public boolean isSingle;
+    //display
+    public boolean active = false;
     
     public Block(){
         
