@@ -1,6 +1,7 @@
 package Plan.Displaying;
 
 import Plan.Items.Block;
+import Plan.Items.Button;
 import Plan.Switch;
 import Plan.Utilties.SaverLoader;
 import java.awt.Color;
@@ -16,9 +17,10 @@ import javax.swing.JPanel;
 
 public class Loop extends JPanel implements MouseListener{
     
-    public int distance = 10;
+    public int gap = 10;
     public int buttonSizeX;
     public LinkedList<Block> blocks;
+    public LinkedList<Button> buttons = new LinkedList();
     private int hourSize = 0;
     private int startHour = 24;
     private int endHour = 0;
@@ -53,11 +55,31 @@ public class Loop extends JPanel implements MouseListener{
                 break;
             }
         }
-        save();
+    }
+    
+    public void addBlock(int startsAt){
+        String placeholderText = "placeholder";
+        
+        Block block = new Block();
+        block.startsAt = startsAt;
+        
+        block.title = placeholderText;
+        block.type = placeholderText;
+        block.teacher = placeholderText;
+        block.room = placeholderText;
+        block.place = placeholderText;
+        block.dayOfWeek = Switch.chosenDay;
+        block.lengthMinutes = 60;
+        
+        
+        block.active = true;
+        
+        Switch.addingMode.active = false;
+        blocks.add(block);
     }
     
     private void drawDaySelection(Graphics2D draw){
-        buttonSizeX = (int)(this.getWidth()-(6*distance))/5;
+        buttonSizeX = (int)(this.getWidth()-(6*gap))/5;
         //test
         Calendar cal = Calendar.getInstance();
         int day = cal.get(Calendar.DAY_OF_WEEK)-2;
@@ -68,7 +90,7 @@ public class Loop extends JPanel implements MouseListener{
         Font font = new Font("Arial" , Font.PLAIN, 1);
         while(true){
             FontMetrics testMetrics = draw.getFontMetrics(font);
-            if(testMetrics.stringWidth("Poniedziałek")>buttonSizeX-2*distance){
+            if(testMetrics.stringWidth("Poniedziałek")>buttonSizeX-2*gap){
                 break;
             }
             else{
@@ -92,13 +114,13 @@ public class Loop extends JPanel implements MouseListener{
             metrics = draw.getFontMetrics(font);
             
             //borders
-            draw.drawRect(distance+(buttonSizeX*count)+(distance*count), distance, buttonSizeX, this.getHeight()-(2*distance));
+            draw.drawRect(gap+(buttonSizeX*count)+(gap*count), gap, buttonSizeX, this.getHeight()-(2*gap));
             if(count==day){
-                draw.drawRect(distance+(buttonSizeX*count)+(distance*count)+1, distance+1, buttonSizeX-2, this.getHeight()-(2*distance)-2);
+                draw.drawRect(gap+(buttonSizeX*count)+(gap*count)+1, gap+1, buttonSizeX-2, this.getHeight()-(2*gap)-2);
             }
             //names
             String timeName = null;
-            draw.setClip(distance+(buttonSizeX*count)+(distance*count)+1, distance+1, buttonSizeX-2, this.getHeight()-(2*distance)-2);
+            draw.setClip(gap+(buttonSizeX*count)+(gap*count)+1, gap+1, buttonSizeX-2, this.getHeight()-(2*gap)-2);
             switch(count){
                 case 0:
                     timeName = "Poniedziałek";
@@ -117,8 +139,8 @@ public class Loop extends JPanel implements MouseListener{
                     break;
             }
             metrics.stringWidth(timeName);
-            int advance = ((buttonSizeX-2*distance)-metrics.stringWidth(timeName))/2;
-            draw.drawString(timeName, distance+distance+(buttonSizeX*count)+(distance*count)+advance, 2*distance+fontHeight);   
+            int advance = ((buttonSizeX-2*gap)-metrics.stringWidth(timeName))/2;
+            draw.drawString(timeName, gap+gap+(buttonSizeX*count)+(gap*count)+advance, 2*gap+fontHeight);   
             
             //draw calendar time
 
@@ -130,8 +152,8 @@ public class Loop extends JPanel implements MouseListener{
                 cal.roll(Calendar.DATE, true);
             }
             timeName = cal.get(Calendar.DAY_OF_MONTH)+"."+cal.get(Calendar.MONTH)+"."+cal.get(Calendar.YEAR);
-            advance = ((buttonSizeX-2*distance)-metrics.stringWidth(timeName))/2;
-            draw.drawString(timeName, distance+distance+(buttonSizeX*count)+(distance*count)+advance, 2*distance+fontHeight*2);   
+            advance = ((buttonSizeX-2*gap)-metrics.stringWidth(timeName))/2;
+            draw.drawString(timeName, gap+gap+(buttonSizeX*count)+(gap*count)+advance, 2*gap+fontHeight*2);   
             
             
             
@@ -145,8 +167,8 @@ public class Loop extends JPanel implements MouseListener{
         
         
         draw.setColor(Color.black);
-        draw.drawLine(distance, distance+3*distance, this.getWidth()-2*distance, distance+3*distance);
-        draw.drawLine(distance, distance, this.getWidth()-2*distance, distance);
+        draw.drawLine(gap, gap+3*gap, this.getWidth()-2*gap, gap+3*gap);
+        draw.drawLine(gap, gap, this.getWidth()-2*gap, gap);
         
         //load blocks
         if(blocks==null){
@@ -167,21 +189,21 @@ public class Loop extends JPanel implements MouseListener{
                 }
             }
         }
-        hourSize = (this.getWidth()-2*distance)/(endHour-startHour);
+        hourSize = (this.getWidth()-2*gap)/(endHour-startHour);
         
         //borders
         for(int count = 0; count<(endHour-startHour);count++){
-            draw.drawLine(distance+hourSize*count, distance, distance+hourSize*count, this.getHeight()-distance);
-            if(Switch.grid){
-                draw.drawLine(distance+hourSize*count+1, distance, distance+hourSize*count+1, this.getHeight()-distance);
-                draw.drawLine(distance+hourSize*count-1, distance, distance+hourSize*count-1, this.getHeight()-distance);
+            draw.drawLine(gap+hourSize*count, gap, gap+hourSize*count, this.getHeight()-gap);
+            if(Switch.grid.active){
+                draw.drawLine(gap+hourSize*count+1, gap, gap+hourSize*count+1, this.getHeight()-gap);
+                draw.drawLine(gap+hourSize*count-1, gap, gap+hourSize*count-1, this.getHeight()-gap);
             }
             
             //set font
             Font font = new Font("Arial", Font.PLAIN, 1);
             FontMetrics metrics = draw.getFontMetrics(font);
             while(true){
-                if(metrics.getHeight()<=distance*2){
+                if(metrics.getHeight()<=gap*2){
                     font = new Font(font.getName(), font.getStyle(), font.getSize()+1);
                     metrics = draw.getFontMetrics(font);
                 }
@@ -192,19 +214,19 @@ public class Loop extends JPanel implements MouseListener{
             draw.setFont(font);
             
             //draw hours
-            draw.setClip(distance+hourSize*count, distance, hourSize-distance, 3*distance);
-            draw.drawString(String.valueOf(startHour+count)+":00", distance+(distance/2)+count*hourSize, distance*3+(distance/2));
+            draw.setClip(gap+hourSize*count, gap, hourSize-gap, 3*gap);
+            draw.drawString(String.valueOf(startHour+count)+":00", gap+(gap/2)+count*hourSize, gap*3+(gap/2));
             draw.setClip(0, 0, this.getWidth(), this.getHeight());
 
         }
         
         //draw additional grid
-        if(Switch.grid){
+        if(Switch.grid.active){
             int howMuch = endHour-startHour;
             draw.setColor(Color.black);
             for(int count = 0; count<howMuch; count++){
                 for(int countIns = 0; countIns<4; countIns++){
-                    draw.drawLine(distance+count*hourSize+countIns*(hourSize/4), 4*distance, distance+count*hourSize+countIns*(hourSize/4), this.getHeight()-distance);
+                    draw.drawLine(gap+count*hourSize+countIns*(hourSize/4), 4*gap, gap+count*hourSize+countIns*(hourSize/4), this.getHeight()-gap);
                 }
             }
         }
@@ -224,30 +246,30 @@ public class Loop extends JPanel implements MouseListener{
                 if(block.active){
                     draw.setColor(Color.gray.brighter());
                 }
-                draw.fillRect(distance+shift, distance*5, blockSize, 10*distance);
+                draw.fillRect(gap+shift, gap*5, blockSize, 10*gap);
                 draw.setColor(Color.black);
-                draw.drawRect(distance+shift, distance*5, blockSize, 10*distance);
-                draw.drawRect(distance+shift+1, distance*5+1, blockSize-2, 10*distance-2);
+                draw.drawRect(gap+shift, gap*5, blockSize, 10*gap);
+                draw.drawRect(gap+shift+1, gap*5+1, blockSize-2, 10*gap-2);
                 
                 //draw text on blocks
                 //-title
                 Font font = new Font("Arial", Font.BOLD, 14);
                 FontMetrics metrics = draw.getFontMetrics(font);
                 draw.setFont(font);
-                draw.setClip(distance+shift, distance*5, blockSize-distance, 10*distance);
-                draw.drawString(block.title, 2*distance+shift, distance*7);
+                draw.setClip(gap+shift, gap*5, blockSize-gap, 10*gap);
+                draw.drawString(block.title, 2*gap+shift, gap*7);
                 //-teacher
                 font = new Font("Arial", Font.PLAIN, 12);
                 draw.setFont(font);
                 metrics = draw.getFontMetrics(font);
-                draw.drawString(block.teacher, 2*distance+shift, distance*7+metrics.getHeight()+1);
+                draw.drawString(block.teacher, 2*gap+shift, gap*7+metrics.getHeight()+1);
                 //type
-                draw.drawString(block.type, 2*distance+shift, distance*7+2*metrics.getHeight()+1);
+                draw.drawString(block.type, 2*gap+shift, gap*7+2*metrics.getHeight()+1);
                 //place
-                draw.drawString(block.place, 2*distance+shift, distance*7+10*distance-3*distance);
+                draw.drawString(block.place, 2*gap+shift, gap*7+10*gap-3*gap);
                 font = new Font("Arial", Font.BOLD, 12);
                 draw.setFont(font);
-                draw.drawString(" "+block.room, 2*distance+shift+metrics.stringWidth(block.place), distance*7+10*distance-3*distance);
+                draw.drawString(" "+block.room, 2*gap+shift+metrics.stringWidth(block.place), gap*7+10*gap-3*gap);
                 
                 draw.setClip(0, 0, this.getWidth(), this.getHeight());
                 //EXTEND HERE<<<------------------//
@@ -269,51 +291,75 @@ public class Loop extends JPanel implements MouseListener{
         currTimeSize = currHour+currMinute;
 
         if(cal.get(Calendar.DAY_OF_WEEK)-2==Switch.chosenDay){
-            draw.drawLine(distance+currTimeSize-1, distance*4, distance+currTimeSize-1, this.getHeight()-distance);
-            draw.drawLine(distance+currTimeSize, distance*4, distance+currTimeSize, this.getHeight()-distance);
-            draw.drawLine(distance+currTimeSize+1, distance*4, distance+currTimeSize+1, this.getHeight()-distance);
-        }
-
-        //draw return button
-        Font font = new Font("Arial", Font.BOLD, 15);
-        draw.setFont(font);
-        draw.setColor(Color.gray);
-        draw.fillRect(this.getWidth()-distance-60, this.getHeight()-4*distance, 60, 3*distance);
-        draw.setColor(Color.black);
-        draw.drawRect(this.getWidth()-distance-60, this.getHeight()-4*distance, 60, 3*distance);
-        draw.drawRect(this.getWidth()-distance-60+1, this.getHeight()-4*distance+1, 60-2, 3*distance-2);
-        draw.drawString("Back", this.getWidth()-60, this.getHeight()-2*distance);
-
-        //draw gridButton
-        draw.setColor(Color.gray);
-        if(Switch.grid==true){
-            draw.setColor(Color.gray.brighter());
-        }
-        draw.fillRect(this.getWidth()-distance-120-distance, this.getHeight()-4*distance, 60, 3*distance);
-        draw.setColor(Color.black);
-        draw.drawRect(this.getWidth()-distance-120-distance, this.getHeight()-4*distance, 60, 3*distance);
-        draw.drawRect(this.getWidth()-distance-120+1-distance, this.getHeight()-4*distance+1, 60-2, 3*distance-2);
-        draw.drawString("Grid", this.getWidth()-120-distance, this.getHeight()-2*distance);
+            draw.drawLine(gap+currTimeSize-1, gap*4, gap+currTimeSize-1, this.getHeight()-gap);
+            draw.drawLine(gap+currTimeSize, gap*4, gap+currTimeSize, this.getHeight()-gap);
+            draw.drawLine(gap+currTimeSize+1, gap*4, gap+currTimeSize+1, this.getHeight()-gap);
+        } 
         
-        //draw add button
-        draw.setColor(Color.gray);
-        if(Switch.addingMode==true){
-            draw.setColor(Color.gray.brighter());
-        }
-        draw.fillRect(this.getWidth()-180-distance*3, this.getHeight()-4*distance, 60, 3*distance);
-        draw.setColor(Color.black);
-        draw.drawRect(this.getWidth()-180-distance*3, this.getHeight()-4*distance, 60, 3*distance);
-        draw.drawRect(this.getWidth()-180+1-distance*3, this.getHeight()-4*distance+1, 60-2, 3*distance-2);
-        draw.drawString("Add", this.getWidth()-180-distance*2, this.getHeight()-2*distance);
+        drawInterface(draw);
+    }
+    
+    private void drawInterface(Graphics2D draw){
+        int buttonWidth = 100;
         
-        //draw remove button
-        draw.setColor(Color.gray);
-        draw.fillRect(this.getWidth()-240-distance*4, this.getHeight()-4*distance, 60, 3*distance);
-        draw.setColor(Color.black);
-        draw.drawRect(this.getWidth()-240-distance*4, this.getHeight()-4*distance, 60, 3*distance);
-        draw.drawRect(this.getWidth()-240+1-distance*4, this.getHeight()-4*distance+1, 60-2, 3*distance-2);
-        draw.drawString("Dlte", this.getWidth()-240-distance*3, this.getHeight()-2*distance);
+        //initialize if null
+        if(buttons.isEmpty()){
+            //return button
+            Button button = new Button(this.getWidth(), this.getHeight(), 0);
+            button.title = "Back";
+            button.x = gap+buttonWidth;
+            button.y = 4*gap;
+            button.width = buttonWidth;
+            button.height  =3*gap;
+            button.gap = gap;
+            buttons.add(button);
             
+            //save button
+            button = new Button(this.getWidth(), this.getHeight(), 1);
+            button.title = "Save";
+            button.x = 2*gap+2*buttonWidth;
+            button.y = 4*gap;
+            button.width = buttonWidth;
+            button.height  = 3*gap;
+            button.gap = gap;
+            buttons.add(button);
+            
+            //grid button
+            button = new Button(this.getWidth(), this.getHeight(), 2);
+            button.active = Switch.grid;
+            button.title = "Grid";
+            button.x = 3*gap+3*buttonWidth;
+            button.y = 4*gap;
+            button.width = buttonWidth;
+            button.height  = 3*gap;
+            button.gap = gap;
+            buttons.add(button);
+            
+            //add button
+            button = new Button(this.getWidth(), this.getHeight(), 3);
+            button.active = Switch.addingMode;
+            button.title = "Add";
+            button.x = 4*gap+4*buttonWidth;
+            button.y = 4*gap;
+            button.width = buttonWidth;
+            button.height  = 3*gap;
+            button.gap = gap;
+            buttons.add(button);
+            
+            //delete button
+            button = new Button(this.getWidth(), this.getHeight(), 4);
+            button.title = "Delete";
+            button.x = 5*gap+5*buttonWidth;
+            button.y = 4*gap;
+            button.width = buttonWidth;
+            button.height  = 3*gap;
+            button.gap = gap;
+            buttons.add(button);
+        }
+        for(Button i: buttons){
+            i.update(this.getWidth(), this.getHeight());
+            i.render(draw);
+        }
     }
     
     @Override
@@ -325,10 +371,12 @@ public class Loop extends JPanel implements MouseListener{
     public void mousePressed(MouseEvent e) {
         if(Switch.switcher==0){
             for(int count = 0; count<5; count++){
-                if(e.getX()>=distance+(buttonSizeX*count)+(distance*count) && e.getX()<=distance+(buttonSizeX*count)+(distance*count)+buttonSizeX){
-                    if(e.getY()>=distance && e.getY()<=distance+this.getHeight()-(2*distance)){
+                if(e.getX()>=gap+(buttonSizeX*count)+(gap*count) && e.getX()<=gap+(buttonSizeX*count)+(gap*count)+buttonSizeX){
+                    if(e.getY()>=gap && e.getY()<=gap+this.getHeight()-(2*gap)){
                         Switch.chosenDay=count;
                         
+                        startHour = 24;
+                        endHour = 0;
                         
                         Switch.switcher=1;
                     }
@@ -337,35 +385,30 @@ public class Loop extends JPanel implements MouseListener{
         }
         else if(Switch.switcher==1){
             //buttons
-            if(e.getX()>=this.getWidth()-distance-60 && e.getX()<=this.getWidth()-distance){
-                if(e.getY()>=this.getHeight()-4*distance && e.getY()<=this.getHeight()-distance){
-                    Switch.switcher = 0;
-                }
+            if(buttons.get(0).isClicked(e.getX(), e.getY())){
+                Switch.switcher = 0;
             }
-            else if(e.getX()>=this.getWidth()-distance-60-60-distance && e.getX()<=this.getWidth()-distance-60-distance){
-                if(e.getY()>=this.getHeight()-4*distance && e.getY()<=this.getHeight()-distance){
-                    Switch.grid = !Switch.grid;
-                }
+            else if(buttons.get(1).isClicked(e.getX(), e.getY())){
+                save();
             }
-            else if(e.getX()>=this.getWidth()-180-distance*3 && e.getX()<=this.getWidth()-120-distance*3){
-                if(e.getY()>=this.getHeight()-4*distance && e.getY()<=this.getHeight()-distance){
-                    Switch.addingMode = !Switch.addingMode;
-                }
+            else if(buttons.get(2).isClicked(e.getX(), e.getY())){
+                Switch.grid.active = !Switch.grid.active;
             }
-            else if(e.getX()>=this.getWidth()-240-distance*4 && e.getX()<=this.getWidth()-180-distance*4){
-                if(e.getY()>=this.getHeight()-4*distance && e.getY()<=this.getHeight()-distance){
-                    removeBlock();
-                }
+            else if(buttons.get(3).isClicked(e.getX(), e.getY())){
+                Switch.addingMode.active = !Switch.addingMode.active;
+            }
+            else if(buttons.get(4).isClicked(e.getX(), e.getY())){
+                removeBlock();
             }
             
             //compute click-time
             else{
-                int timeFrame = (this.getWidth()-distance*2);
+                int timeFrame = (this.getWidth()-gap*2);
                 int hourRange = timeFrame/hourSize;
-                int positionAt = e.getX()-distance;
+                int positionAt = e.getX()-gap;
                 int timeAt = (int) ((double)positionAt/timeFrame*hourRange*60)+startHour*60;
 
-                //removing
+                //setting activity
                 for(Block i: blocks){
                     if(timeAt>=i.startsAt && timeAt<=i.startsAt+i.lengthMinutes){
                         i.active = true;
@@ -373,6 +416,11 @@ public class Loop extends JPanel implements MouseListener{
                     else{
                         i.active = false;
                     }
+                }
+                
+                //adding blocks
+                if(Switch.addingMode.active){
+                    addBlock(timeAt);
                 }
             }
         }
