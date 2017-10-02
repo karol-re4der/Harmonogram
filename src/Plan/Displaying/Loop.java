@@ -18,15 +18,17 @@ import javax.swing.JPanel;
 public class Loop extends JPanel implements MouseListener{
     
     public int gap = 10;
-    public int buttonSizeX;
+    public int dayFrameWidth;
+    public int blockHeight = 10*gap;
     public LinkedList<Block> blocks;
     public LinkedList<Button> buttons = new LinkedList();
     private int hourSize = 0;
     private int startHour = 24;
     private int endHour = 0;
+    private Graphics2D draw;
     
     public void paint(Graphics g){
-        Graphics2D draw = (Graphics2D)g;
+        draw = (Graphics2D)g;
         if(this.getMouseListeners().length==0){
             addMouseListener(this);
         }
@@ -58,10 +60,15 @@ public class Loop extends JPanel implements MouseListener{
     }
     
     public void addBlock(int startsAt){
+        int roundingValue = 15;
+        
+        int modulo = Math.round((startsAt%roundingValue)/15f);
+        int roundedTime = (startsAt/roundingValue)*roundingValue+modulo*roundingValue; 
+        
         String placeholderText = "placeholder";
         
         Block block = new Block();
-        block.startsAt = startsAt;
+        block.startsAt = roundedTime;
         
         block.title = placeholderText;
         block.type = placeholderText;
@@ -73,13 +80,12 @@ public class Loop extends JPanel implements MouseListener{
         
         
         block.active = true;
-        
-        Switch.addingMode.active = false;
+
         blocks.add(block);
     }
     
     private void drawDaySelection(Graphics2D draw){
-        buttonSizeX = (int)(this.getWidth()-(6*gap))/5;
+        dayFrameWidth = (int)(this.getWidth()-(6*gap))/5;
         //test
         Calendar cal = Calendar.getInstance();
         int day = cal.get(Calendar.DAY_OF_WEEK)-2;
@@ -90,7 +96,7 @@ public class Loop extends JPanel implements MouseListener{
         Font font = new Font("Arial" , Font.PLAIN, 1);
         while(true){
             FontMetrics testMetrics = draw.getFontMetrics(font);
-            if(testMetrics.stringWidth("Poniedziałek")>buttonSizeX-2*gap){
+            if(testMetrics.stringWidth("Poniedziałek")>dayFrameWidth-2*gap){
                 break;
             }
             else{
@@ -114,13 +120,13 @@ public class Loop extends JPanel implements MouseListener{
             metrics = draw.getFontMetrics(font);
             
             //borders
-            draw.drawRect(gap+(buttonSizeX*count)+(gap*count), gap, buttonSizeX, this.getHeight()-(2*gap));
+            draw.drawRect(gap+(dayFrameWidth*count)+(gap*count), gap, dayFrameWidth, this.getHeight()-(2*gap));
             if(count==day){
-                draw.drawRect(gap+(buttonSizeX*count)+(gap*count)+1, gap+1, buttonSizeX-2, this.getHeight()-(2*gap)-2);
+                draw.drawRect(gap+(dayFrameWidth*count)+(gap*count)+1, gap+1, dayFrameWidth-2, this.getHeight()-(2*gap)-2);
             }
             //names
             String timeName = null;
-            draw.setClip(gap+(buttonSizeX*count)+(gap*count)+1, gap+1, buttonSizeX-2, this.getHeight()-(2*gap)-2);
+            draw.setClip(gap+(dayFrameWidth*count)+(gap*count)+1, gap+1, dayFrameWidth-2, this.getHeight()-(2*gap)-2);
             switch(count){
                 case 0:
                     timeName = "Poniedziałek";
@@ -139,8 +145,8 @@ public class Loop extends JPanel implements MouseListener{
                     break;
             }
             metrics.stringWidth(timeName);
-            int advance = ((buttonSizeX-2*gap)-metrics.stringWidth(timeName))/2;
-            draw.drawString(timeName, gap+gap+(buttonSizeX*count)+(gap*count)+advance, 2*gap+fontHeight);   
+            int advance = ((dayFrameWidth-2*gap)-metrics.stringWidth(timeName))/2;
+            draw.drawString(timeName, gap+gap+(dayFrameWidth*count)+(gap*count)+advance, 2*gap+fontHeight);   
             
             //draw calendar time
 
@@ -152,8 +158,8 @@ public class Loop extends JPanel implements MouseListener{
                 cal.roll(Calendar.DATE, true);
             }
             timeName = cal.get(Calendar.DAY_OF_MONTH)+"."+cal.get(Calendar.MONTH)+"."+cal.get(Calendar.YEAR);
-            advance = ((buttonSizeX-2*gap)-metrics.stringWidth(timeName))/2;
-            draw.drawString(timeName, gap+gap+(buttonSizeX*count)+(gap*count)+advance, 2*gap+fontHeight*2);   
+            advance = ((dayFrameWidth-2*gap)-metrics.stringWidth(timeName))/2;
+            draw.drawString(timeName, gap+gap+(dayFrameWidth*count)+(gap*count)+advance, 2*gap+fontHeight*2);   
             
             
             
@@ -234,42 +240,62 @@ public class Loop extends JPanel implements MouseListener{
         //draw blocks
         for(Block block: blocks){
             if(block.dayOfWeek==Switch.chosenDay){
+                //set level
+                block.level = 0;
+                for(int i = 0; i<blocks.size(); i++){
+                    if(blocks.get(i).dayOfWeek==Switch.chosenDay){
+                        if(blocks.get(i)!=block){
+                            if(blocks.get(i).level==block.level){
+                                if(block.startsAt>=blocks.get(i).startsAt && block.startsAt<=blocks.get(i).startsAt+blocks.get(i).lengthMinutes || block.startsAt+block.lengthMinutes>=blocks.get(i).startsAt && block.startsAt+block.lengthMinutes<=blocks.get(i).startsAt+blocks.get(i).lengthMinutes){
+                                    block.level++;
+                                    i = 0;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                
+                
                 draw.setColor(Color.black);
                 float mShift = (block.startsAt%60)/60f;
                 mShift*=hourSize;
                 int hShift = ((block.startsAt/60)-startHour)*hourSize;
                 int shift = (int)mShift+hShift;
                 
-                int blockSize = (int) ((block.lengthMinutes/60f)*hourSize);
+                int blockWidth = (int) ((block.lengthMinutes/60f)*hourSize);
+                
+                
+                int levelShift = (blockHeight+gap)*block.level;
                 
                 draw.setColor(Color.gray);
                 if(block.active){
                     draw.setColor(Color.gray.brighter());
                 }
-                draw.fillRect(gap+shift, gap*5, blockSize, 10*gap);
+                draw.fillRect(gap+shift, levelShift+gap*5, blockWidth, blockHeight);
                 draw.setColor(Color.black);
-                draw.drawRect(gap+shift, gap*5, blockSize, 10*gap);
-                draw.drawRect(gap+shift+1, gap*5+1, blockSize-2, 10*gap-2);
+                draw.drawRect(gap+shift, levelShift+gap*5, blockWidth, blockHeight);
+                draw.drawRect(gap+shift+1, levelShift+gap*5+1, blockWidth-2, blockHeight-2);
                 
                 //draw text on blocks
                 //-title
                 Font font = new Font("Arial", Font.BOLD, 14);
                 FontMetrics metrics = draw.getFontMetrics(font);
                 draw.setFont(font);
-                draw.setClip(gap+shift, gap*5, blockSize-gap, 10*gap);
-                draw.drawString(block.title, 2*gap+shift, gap*7);
+                draw.setClip(gap+shift, levelShift+gap*5, blockWidth-gap, blockHeight);
+                draw.drawString(block.title, 2*gap+shift, levelShift+gap*7);
                 //-teacher
                 font = new Font("Arial", Font.PLAIN, 12);
                 draw.setFont(font);
                 metrics = draw.getFontMetrics(font);
-                draw.drawString(block.teacher, 2*gap+shift, gap*7+metrics.getHeight()+1);
+                draw.drawString(block.teacher, 2*gap+shift, levelShift+gap*7+metrics.getHeight()+1);
                 //type
-                draw.drawString(block.type, 2*gap+shift, gap*7+2*metrics.getHeight()+1);
+                draw.drawString(block.type, 2*gap+shift, levelShift+gap*7+2*metrics.getHeight()+1);
                 //place
-                draw.drawString(block.place, 2*gap+shift, gap*7+10*gap-3*gap);
+                draw.drawString(block.place, 2*gap+shift, levelShift+gap*7+blockHeight-3*gap);
                 font = new Font("Arial", Font.BOLD, 12);
                 draw.setFont(font);
-                draw.drawString(" "+block.room, 2*gap+shift+metrics.stringWidth(block.place), gap*7+10*gap-3*gap);
+                draw.drawString(" "+block.room, 2*gap+shift+metrics.stringWidth(block.place), levelShift+gap*7+blockHeight-3*gap);
                 
                 draw.setClip(0, 0, this.getWidth(), this.getHeight());
                 //EXTEND HERE<<<------------------//
@@ -371,7 +397,7 @@ public class Loop extends JPanel implements MouseListener{
     public void mousePressed(MouseEvent e) {
         if(Switch.switcher==0){
             for(int count = 0; count<5; count++){
-                if(e.getX()>=gap+(buttonSizeX*count)+(gap*count) && e.getX()<=gap+(buttonSizeX*count)+(gap*count)+buttonSizeX){
+                if(e.getX()>=gap+(dayFrameWidth*count)+(gap*count) && e.getX()<=gap+(dayFrameWidth*count)+(gap*count)+dayFrameWidth){
                     if(e.getY()>=gap && e.getY()<=gap+this.getHeight()-(2*gap)){
                         Switch.chosenDay=count;
                         
@@ -403,18 +429,29 @@ public class Loop extends JPanel implements MouseListener{
             
             //compute click-time
             else{
-                int timeFrame = (this.getWidth()-gap*2);
-                int hourRange = timeFrame/hourSize;
+                //compute timeAt
+                double minuteSize = hourSize/60f;
                 int positionAt = e.getX()-gap;
-                int timeAt = (int) ((double)positionAt/timeFrame*hourRange*60)+startHour*60;
-
+                int timeAt = (int) (positionAt/minuteSize)+startHour*60;
+                //compute levelAt
+                positionAt = e.getY()-gap*5;
+                int levelAt = positionAt/(blockHeight+gap);
+                int tak = positionAt-levelAt*(blockHeight+gap);
+                if(tak>blockHeight || tak<0){
+                    levelAt = -1;
+                }
+                
+                System.out.println(tak);
+                
                 //setting activity
                 for(Block i: blocks){
-                    if(timeAt>=i.startsAt && timeAt<=i.startsAt+i.lengthMinutes){
-                        i.active = true;
-                    }
-                    else{
-                        i.active = false;
+                    if(i.dayOfWeek==Switch.chosenDay){
+                        if((timeAt>=i.startsAt && timeAt<=i.startsAt+i.lengthMinutes-1) && levelAt==i.level){
+                            i.active = true;
+                        }
+                        else{
+                            i.active = false;
+                        }
                     }
                 }
                 
@@ -424,6 +461,7 @@ public class Loop extends JPanel implements MouseListener{
                 }
             }
         }
+        
         
         
         this.repaint();

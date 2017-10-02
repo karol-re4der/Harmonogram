@@ -14,6 +14,7 @@ public class Block {
     
     //display
     public boolean active = false;
+    public int level = 0;
     
     public Block(){
         
