@@ -19,8 +19,26 @@ public class SaverLoader {
      private String fileName = "Blocks.json";
      private File file = null;
     
+    private void createIfNone(){
+
+        File file2 = new File(directory+fileName);
+        if(!file2.exists()){
+            try {
+                file2.createNewFile();
+                FileWriter writer = new FileWriter(directory+fileName);
+                writer.write("{\"array\":[]}");
+                writer.flush();
+            } catch (IOException ex) {
+                Logger.getLogger(SaverLoader.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+     
     public LinkedList<Block> loadBlocks(LinkedList<Block> blocks){
         String JSONText = "";
+
+        //create if doesn't exist
+        createIfNone();
         
         //load JSON text
         try {
@@ -60,6 +78,9 @@ public class SaverLoader {
         return blocks;
     }
     public void saveBlocks(LinkedList<Block> blocks){
+        //create if doesn't exist
+        createIfNone();
+        
         //prepare JSON
         JSONObject obj = new JSONObject();
         JSONArray array = new JSONArray();
