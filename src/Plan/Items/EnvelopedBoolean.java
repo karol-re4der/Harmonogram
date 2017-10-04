@@ -1,5 +1,8 @@
 package Plan.Items;
 
 public class EnvelopedBoolean {
-    public boolean active = false;
+    public EnvelopedBoolean(boolean initialValue){
+        this.active = initialValue;
+    }
+    public boolean active;
 }

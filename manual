@@ -1,0 +1,9 @@
+CONTROL:
+LEFT and RIGHT arrow keys to move a block in EDIT MODE              *
+LEFT and RIGHT arrow keys to move timeframe in DISPLAY MODE         *
+UP and DOWN arrow keys to change active field of block in EDIT MODE 
+UP and DOWN arrow keys to change move level frame in DISPLAY MODE   *
+PLUS and MINUS keys to extend timeframe in DISPLAY MODE             *
+PLUS and MINUS keys to resize block in EDIT MODE                    *
+DELETE key to remove block in EDIT MODE                             *
+EQUALITY key to resize timeframe to fit blocks in DISPLAY MODE      *

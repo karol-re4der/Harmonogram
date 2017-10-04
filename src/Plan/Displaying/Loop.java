@@ -9,28 +9,36 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Calendar;
 import java.util.LinkedList;
 import javax.swing.JPanel;
 
-public class Loop extends JPanel implements MouseListener{
+public class Loop extends JPanel implements KeyListener, MouseListener{
     
     public int gap = 10;
     public int dayFrameWidth;
+    public int activeEntry = 0;
+    public int maxEntries = 5;
+    public int roundingValue = 15;
     public int blockHeight = 10*gap;
     public LinkedList<Block> blocks;
     public LinkedList<Button> buttons = new LinkedList();
     private int hourSize = 0;
-    private int startHour = 24;
-    private int endHour = 0;
+    private int startHour = 0;
+    private int endHour = 24;
+    private int startLevel = 0;
     private Graphics2D draw;
     
     public void paint(Graphics g){
         draw = (Graphics2D)g;
         if(this.getMouseListeners().length==0){
             addMouseListener(this);
+            addKeyListener(this);
+            this.setFocusable(true);
         }
         
         //draw background
@@ -50,6 +58,82 @@ public class Loop extends JPanel implements MouseListener{
         sload.saveBlocks(blocks);
     }
     
+    public void bubbleSort(LinkedList<Block> list){
+        //move to array
+        Block[] array = new Block[list.size()];
+        for(int i = 0; i<list.size(); i++){
+            array[i] = list.get(i);
+        }
+        
+        //sort an array
+        for(int i = 0; i<array.length; i++){
+            if(i-1>=0 && i-1<=array.length){
+                if(array[i-1].startsAt>array[i].startsAt){
+                    Block cache = array[i-1];
+                    array[i-1] = array[i];
+                    array[i] = cache;
+                    i = 0;
+                }
+            }
+        }
+        
+        //move back to list
+        list = new LinkedList();
+        for(Block i: array){
+            list.add(i);
+        }
+    }
+    
+    public void moveTimeFrame(boolean advancing){
+        if(advancing){
+            if(startHour+1<24 && endHour+1<=24){
+                startHour++;
+                endHour++;
+            }
+        }
+        else{
+            if(startHour-1>=0 && endHour-1>0){
+                startHour--;
+                endHour--;
+            }
+        }
+    }
+    
+    public void expandTimeFrame(boolean expanding){
+        if(expanding){
+            endHour++;
+            startHour--;
+            if(endHour>24){
+                endHour = 24;
+            }
+            if(startHour<0){
+                startHour = 0;
+            }
+        }
+        else{
+            if(endHour-startHour-2>1){
+                endHour--;
+                startHour++;
+            }
+        }
+    }
+    
+    public void fitBlocks(){
+        endHour = 0;
+        startHour = 24;
+        for(Block block: blocks){
+            if(block.dayOfWeek==Switch.chosenDay){
+                if(block.startsAt/60<=startHour){
+                    startHour = block.startsAt/60-1;
+                }
+                int length = block.lengthMinutes/60;
+                if(block.startsAt/60+length>=endHour){
+                    endHour = block.startsAt/60+length+1;
+                }
+            }
+        }
+    }
+    
     public void removeBlock(){
         for(int i = 0; i<blocks.size(); i++){
             if(blocks.get(i).active){
@@ -60,8 +144,6 @@ public class Loop extends JPanel implements MouseListener{
     }
     
     public void addBlock(int startsAt){
-        int roundingValue = 15;
-        
         int modulo = Math.round((startsAt%roundingValue)/15f);
         int roundedTime = (startsAt/roundingValue)*roundingValue+modulo*roundingValue; 
         
@@ -82,6 +164,38 @@ public class Loop extends JPanel implements MouseListener{
         block.active = true;
 
         blocks.add(block);
+    }
+    
+    public void moveBlock(boolean advancing){
+        for(Block i: blocks){
+            if(i.active){
+                if(advancing){
+                    if(i.startsAt+roundingValue<24*60){
+                        i.startsAt+=roundingValue;
+                    }
+                }
+                else{
+                    if(i.startsAt-roundingValue>=0){
+                        i.startsAt-=roundingValue;
+                    }
+                }
+            }
+        }
+    }
+    
+    public void resizeBlock(boolean extending){
+        for(Block i: blocks){
+            if(i.active){
+                if(extending){
+                    i.lengthMinutes+=roundingValue;
+                }
+                else{
+                    if(i.lengthMinutes-roundingValue>=roundingValue){
+                        i.lengthMinutes -= roundingValue;
+                    }
+                }
+            }
+        }
     }
     
     private void drawDaySelection(Graphics2D draw){
@@ -183,18 +297,6 @@ public class Loop extends JPanel implements MouseListener{
             blocks = sl.loadBlocks(blocks);
         }
         
-        //set
-        for(Block block: blocks){
-            if(block.dayOfWeek==Switch.chosenDay){
-                if(block.startsAt/60<=startHour){
-                    startHour = block.startsAt/60-1;
-                }
-                int length = block.lengthMinutes/60;
-                if(block.startsAt/60+length>=endHour){
-                    endHour = block.startsAt/60+length+1;
-                }
-            }
-        }
         hourSize = (this.getWidth()-2*gap)/(endHour-startHour);
         
         //borders
@@ -241,7 +343,8 @@ public class Loop extends JPanel implements MouseListener{
         for(Block block: blocks){
             if(block.dayOfWeek==Switch.chosenDay){
                 //set level
-                block.level = 0;
+                bubbleSort(blocks);
+                block.level = 0;//startLevel;
                 for(int i = 0; i<blocks.size(); i++){
                     if(blocks.get(i).dayOfWeek==Switch.chosenDay){
                         if(blocks.get(i)!=block){
@@ -256,49 +359,82 @@ public class Loop extends JPanel implements MouseListener{
                 }
                 
                 
-                
-                draw.setColor(Color.black);
-                float mShift = (block.startsAt%60)/60f;
-                mShift*=hourSize;
-                int hShift = ((block.startsAt/60)-startHour)*hourSize;
-                int shift = (int)mShift+hShift;
-                
-                int blockWidth = (int) ((block.lengthMinutes/60f)*hourSize);
-                
-                
-                int levelShift = (blockHeight+gap)*block.level;
-                
-                draw.setColor(Color.gray);
-                if(block.active){
-                    draw.setColor(Color.gray.brighter());
+                //render block
+                if(block.level+startLevel>=0){
+                    draw.setColor(Color.black);
+                    float mShift = (block.startsAt%60)/60f;
+                    mShift*=hourSize;
+                    int hShift = ((block.startsAt/60)-startHour)*hourSize;
+                    int shift = (int)mShift+hShift;
+
+                    int blockWidth = (int) ((block.lengthMinutes/60f)*hourSize);
+
+
+                    int levelShift = (blockHeight+gap)*(block.level+startLevel);
+
+                    draw.setColor(Color.gray);
+                    if(block.active){
+                        draw.setColor(Color.gray.brighter());
+                    }
+                    draw.fillRect(gap+shift, levelShift+gap*5, blockWidth, blockHeight);
+                    draw.setColor(Color.black);
+                    draw.drawRect(gap+shift, levelShift+gap*5, blockWidth, blockHeight);
+                    draw.drawRect(gap+shift+1, levelShift+gap*5+1, blockWidth-2, blockHeight-2);
+
+                    //draw text on blocks
+                    String editionPointer = "|";
+                    //-title
+                    String text = block.title;
+                    draw.setColor(Color.black);
+                    if((activeEntry==1 && Switch.editMode.active) && block.active){
+                        draw.setColor(Color.gray.darker());
+                        text+=editionPointer;
+                    }
+                    Font font = new Font("Arial", Font.BOLD, 14);
+                    FontMetrics metrics = draw.getFontMetrics(font);
+                    draw.setFont(font);
+                    draw.setClip(gap+shift, levelShift+gap*5, blockWidth-gap, blockHeight);
+                    draw.drawString(text, 2*gap+shift, levelShift+gap*7);
+                    //-teacher
+                    text = block.teacher;
+                    draw.setColor(Color.black);
+                    if((activeEntry==2 && Switch.editMode.active) && block.active){
+                        draw.setColor(Color.gray.darker());
+                        text+=editionPointer;
+                    }
+                    font = new Font("Arial", Font.PLAIN, 12);
+                    draw.setFont(font);
+                    metrics = draw.getFontMetrics(font);
+                    draw.drawString(text, 2*gap+shift, levelShift+gap*7+metrics.getHeight()+1);
+                    //type
+                    text = block.type;
+                    draw.setColor(Color.black);
+                    if((activeEntry==3 && Switch.editMode.active) && block.active){
+                        draw.setColor(Color.gray.darker());
+                        text+=editionPointer;
+                    }
+                    draw.drawString(text, 2*gap+shift, levelShift+gap*7+2*metrics.getHeight()+1);
+                    //place and room
+                    text = block.place;
+                    draw.setColor(Color.black);
+                    if((activeEntry==4 && Switch.editMode.active) && block.active){
+                        draw.setColor(Color.gray.darker());
+                        text+=editionPointer;
+                    }
+                    draw.drawString(text, 2*gap+shift, levelShift+gap*7+blockHeight-3*gap);
+                    text = block.room;
+                    font = new Font("Arial", Font.BOLD, 12);
+                    draw.setFont(font);
+                    draw.setColor(Color.black);
+                    if((activeEntry==5 && Switch.editMode.active) && block.active){
+                        draw.setColor(Color.gray.darker());
+                        text+=editionPointer;
+                    }
+                    draw.drawString(" "+text, 2*gap+shift+metrics.stringWidth(block.place), levelShift+gap*7+blockHeight-3*gap);
+
+                    draw.setClip(0, 0, this.getWidth(), this.getHeight());
+                    //EXTEND HERE<<<------------------//
                 }
-                draw.fillRect(gap+shift, levelShift+gap*5, blockWidth, blockHeight);
-                draw.setColor(Color.black);
-                draw.drawRect(gap+shift, levelShift+gap*5, blockWidth, blockHeight);
-                draw.drawRect(gap+shift+1, levelShift+gap*5+1, blockWidth-2, blockHeight-2);
-                
-                //draw text on blocks
-                //-title
-                Font font = new Font("Arial", Font.BOLD, 14);
-                FontMetrics metrics = draw.getFontMetrics(font);
-                draw.setFont(font);
-                draw.setClip(gap+shift, levelShift+gap*5, blockWidth-gap, blockHeight);
-                draw.drawString(block.title, 2*gap+shift, levelShift+gap*7);
-                //-teacher
-                font = new Font("Arial", Font.PLAIN, 12);
-                draw.setFont(font);
-                metrics = draw.getFontMetrics(font);
-                draw.drawString(block.teacher, 2*gap+shift, levelShift+gap*7+metrics.getHeight()+1);
-                //type
-                draw.drawString(block.type, 2*gap+shift, levelShift+gap*7+2*metrics.getHeight()+1);
-                //place
-                draw.drawString(block.place, 2*gap+shift, levelShift+gap*7+blockHeight-3*gap);
-                font = new Font("Arial", Font.BOLD, 12);
-                draw.setFont(font);
-                draw.drawString(" "+block.room, 2*gap+shift+metrics.stringWidth(block.place), levelShift+gap*7+blockHeight-3*gap);
-                
-                draw.setClip(0, 0, this.getWidth(), this.getHeight());
-                //EXTEND HERE<<<------------------//
             }
         }
         
@@ -374,7 +510,8 @@ public class Loop extends JPanel implements MouseListener{
             
             //delete button
             button = new Button(this.getWidth(), this.getHeight(), 4);
-            button.title = "Delete";
+            button.title = "Edit";
+            button.active = Switch.editMode;
             button.x = 5*gap+5*buttonWidth;
             button.y = 4*gap;
             button.width = buttonWidth;
@@ -401,9 +538,6 @@ public class Loop extends JPanel implements MouseListener{
                     if(e.getY()>=gap && e.getY()<=gap+this.getHeight()-(2*gap)){
                         Switch.chosenDay=count;
                         
-                        startHour = 24;
-                        endHour = 0;
-                        
                         Switch.switcher=1;
                     }
                 }
@@ -413,6 +547,10 @@ public class Loop extends JPanel implements MouseListener{
             //buttons
             if(buttons.get(0).isClicked(e.getX(), e.getY())){
                 Switch.switcher = 0;
+                activeEntry = 0;
+                for(Block i: blocks){
+                    i.active = false;
+                }
             }
             else if(buttons.get(1).isClicked(e.getX(), e.getY())){
                 save();
@@ -424,7 +562,7 @@ public class Loop extends JPanel implements MouseListener{
                 Switch.addingMode.active = !Switch.addingMode.active;
             }
             else if(buttons.get(4).isClicked(e.getX(), e.getY())){
-                removeBlock();
+                Switch.editMode.active = !Switch.editMode.active;
             }
             
             //compute click-time
@@ -440,14 +578,15 @@ public class Loop extends JPanel implements MouseListener{
                 if(tak>blockHeight || tak<0){
                     levelAt = -1;
                 }
-                
-                System.out.println(tak);
-                
+
                 //setting activity
                 for(Block i: blocks){
                     if(i.dayOfWeek==Switch.chosenDay){
                         if((timeAt>=i.startsAt && timeAt<=i.startsAt+i.lengthMinutes-1) && levelAt==i.level){
-                            i.active = true;
+                            if(Switch.editMode.active){
+                                i.active = true;
+                                activeEntry = 0;
+                            }
                         }
                         else{
                             i.active = false;
@@ -481,4 +620,134 @@ public class Loop extends JPanel implements MouseListener{
     public void mouseExited(MouseEvent e) {
         
     }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if(Switch.editMode.active){
+            if(e.getKeyChar()=='+'){
+                resizeBlock(true);
+            }
+            else if(e.getKeyChar()=='-'){
+                resizeBlock(false);
+            }
+            else if(e.getKeyCode()==KeyEvent.VK_LEFT){
+                moveBlock(false);
+            }
+            else if(e.getKeyCode()==KeyEvent.VK_RIGHT){
+                moveBlock(true);
+            }
+            else if(e.getKeyCode()==KeyEvent.VK_DELETE){
+                removeBlock();
+            }
+            else if(e.getKeyCode()==KeyEvent.VK_DOWN){
+                if(activeEntry+1<=maxEntries){
+                    activeEntry++;
+                }
+                else{
+                    activeEntry = 0;
+                }
+            }
+            else if(e.getKeyCode()==KeyEvent.VK_UP){
+                if(activeEntry-1>=0){
+                    activeEntry--;
+                }
+                else{
+                    activeEntry = maxEntries;
+                }
+            }
+            else if(e.getKeyCode()==KeyEvent.VK_BACK_SPACE){
+                backSpaceFromEntry();
+            }
+            else{
+                addToEntry(e.getKeyChar());
+            }
+        }
+        else{
+            if(e.getKeyChar()=='-'){
+                expandTimeFrame(true);
+            }
+            else if(e.getKeyChar()=='+'){
+                expandTimeFrame(false);
+            }
+            else if(e.getKeyCode()==KeyEvent.VK_LEFT){
+                moveTimeFrame(false);
+            }
+            else if(e.getKeyCode()==KeyEvent.VK_RIGHT){
+                moveTimeFrame(true);
+            }
+            else if(e.getKeyChar()=='='){
+                fitBlocks();
+            }
+            else if(e.getKeyCode()==KeyEvent.VK_DOWN){
+                startLevel--;
+            }
+            else if(e.getKeyCode()==KeyEvent.VK_UP){
+                startLevel++;
+            }
+        }
+        repaint();
+
+    }
+    
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        
+    }
+
+    private void backSpaceFromEntry() {
+        for(Block i: blocks){
+            if(i.active){
+                if(activeEntry>0 && activeEntry<maxEntries){
+                    if(activeEntry==1 && i.title.length()>0){
+                        i.title = i.title.substring(0, i.title.length()-1);
+                    }
+                    else if(activeEntry==2 && i.teacher.length()>0){
+                        i.teacher = i.teacher.substring(0, i.teacher.length()-1);
+                    }
+                    else if(activeEntry==3 && i.type.length()>0){
+                        i.type = i.type.substring(0, i.type.length()-1);
+                    }
+                    else if(activeEntry==4 && i.place.length()>0){
+                        i.place = i.place.substring(0, i.place.length()-1);
+                    }
+                    else if(activeEntry==5 && i.room.length()>0){
+                        i.room = i.room.substring(0, i.room.length()-1);
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    private void addToEntry(char keyChar) {
+        for(Block i: blocks){
+            if(i.active){
+                if(activeEntry>0 && activeEntry<maxEntries){
+                    if(activeEntry==1){
+                        i.title = i.title.concat(String.valueOf(keyChar));
+                    }
+                    else if(activeEntry==2){
+                        i.teacher = i.teacher.concat(String.valueOf(keyChar));
+                    }
+                    else if(activeEntry==3){
+                        i.type = i.type.concat(String.valueOf(keyChar));
+                    }
+                    else if(activeEntry==4){
+                        i.place = i.place.concat(String.valueOf(keyChar));
+                    }
+                    else if(activeEntry==5){
+                        i.room = i.room.concat(String.valueOf(keyChar));
+                    }
+                }
+                break;
+            }
+        }    
+    }
+        
 }
