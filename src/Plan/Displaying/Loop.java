@@ -726,28 +726,33 @@ public class Loop extends JPanel implements KeyListener, MouseListener{
     }
 
     private void addToEntry(char keyChar) {
-        for(Block i: blocks){
-            if(i.active){
-                if(activeEntry>0 && activeEntry<maxEntries){
-                    if(activeEntry==1){
-                        i.title = i.title.concat(String.valueOf(keyChar));
+        if(keyChar>=32 && keyChar<=126){
+            for(Block i: blocks){
+                if(i.active){
+                    if(activeEntry>0 && activeEntry<maxEntries){
+                        switch (activeEntry) {
+                            case 1:
+                                i.title = i.title.concat(String.valueOf(keyChar));
+                                break;
+                            case 2:
+                                i.teacher = i.teacher.concat(String.valueOf(keyChar));
+                                break;
+                            case 3:
+                                i.type = i.type.concat(String.valueOf(keyChar));
+                                break;
+                            case 4:
+                                i.place = i.place.concat(String.valueOf(keyChar));
+                                break;
+                            case 5:
+                                i.room = i.room.concat(String.valueOf(keyChar));
+                                break;
+                            default:
+                                break;
+                        }
                     }
-                    else if(activeEntry==2){
-                        i.teacher = i.teacher.concat(String.valueOf(keyChar));
-                    }
-                    else if(activeEntry==3){
-                        i.type = i.type.concat(String.valueOf(keyChar));
-                    }
-                    else if(activeEntry==4){
-                        i.place = i.place.concat(String.valueOf(keyChar));
-                    }
-                    else if(activeEntry==5){
-                        i.room = i.room.concat(String.valueOf(keyChar));
-                    }
+                    break;
                 }
-                break;
-            }
-        }    
+            }    
+        }
     }
-        
 }
