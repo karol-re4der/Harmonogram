@@ -5,20 +5,33 @@ import com.theglorious.re4der.harmonogram.Items.Button;
 import com.theglorious.re4der.harmonogram.Switch;
 import com.theglorious.re4der.harmonogram.Utilties.SaverLoader;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Calendar;
 import java.util.LinkedList;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 
-public class Loop extends JPanel implements KeyListener, MouseListener{
+public class Loop extends JLayeredPane implements KeyListener, MouseListener{
     
+    private boolean doOnce = true;
     public int gap = 10;
     public int dayFrameWidth;
     public int activeEntry = 0;
@@ -200,87 +213,82 @@ public class Loop extends JPanel implements KeyListener, MouseListener{
     
     private void drawDaySelection(Graphics2D draw){
         dayFrameWidth = (int)(this.getWidth()-(6*gap))/5;
-        //test
-        Calendar cal = Calendar.getInstance();
-        int day = cal.get(Calendar.DAY_OF_WEEK)-2;
-        if(day==-1){
-            day = 6;
-        }
-        
-        Font font = new Font("Arial" , Font.PLAIN, 1);
-        while(true){
-            FontMetrics testMetrics = draw.getFontMetrics(font);
-            if(testMetrics.stringWidth("Poniedziałek")>dayFrameWidth-2*gap){
-                break;
-            }
-            else{
-                font = new Font(font.getName(), font.getStyle(), font.getSize()+1);
-            }
-        }
-        
-        
-        FontMetrics metrics = draw.getFontMetrics(font);
-        draw.setFont(font);
-        int fontHeight = metrics.getAscent();
-        
-            
-        for(int countIn = 0; countIn<cal.get(Calendar.DAY_OF_WEEK); countIn++){
-            cal.roll(Calendar.DATE, false);
-        }
-        //draw buttons
-        draw.setColor(Color.black);
-        for(int count = 0; count<5; count++){
-            draw.setFont(font);
-            metrics = draw.getFontMetrics(font);
-            
-            //borders
-            draw.drawRect(gap+(dayFrameWidth*count)+(gap*count), gap, dayFrameWidth, this.getHeight()-(2*gap));
-            if(count==day){
-                draw.drawRect(gap+(dayFrameWidth*count)+(gap*count)+1, gap+1, dayFrameWidth-2, this.getHeight()-(2*gap)-2);
-            }
-            //names
-            String timeName = null;
-            draw.setClip(gap+(dayFrameWidth*count)+(gap*count)+1, gap+1, dayFrameWidth-2, this.getHeight()-(2*gap)-2);
-            switch(count){
-                case 0:
-                    timeName = "Poniedziałek";
-                    break;
-                case 1:
-                    timeName = "Wtorek";
-                    break;
-                case 2:
-                    timeName = "Środa";
-                    break;
-                case 3:
-                    timeName = "Czwartek";
-                    break;
-                case 4:
-                    timeName = "Piątek";
-                    break;
-            }
-            metrics.stringWidth(timeName);
-            int advance = ((dayFrameWidth-2*gap)-metrics.stringWidth(timeName))/2;
-            draw.drawString(timeName, gap+gap+(dayFrameWidth*count)+(gap*count)+advance, 2*gap+fontHeight);   
-            
-            //draw calendar time
 
-            Font font2 = new Font(font.getName(), Font.PLAIN, font.getSize()/3);
-            metrics = draw.getFontMetrics(font2);
-            draw.setFont(font2);
-            
-            if(count>0){
-                cal.roll(Calendar.DATE, true);
+        if(doOnce){
+            //determine font size
+            Font font = new Font("Arial" , Font.PLAIN, 1);
+            while(true){
+                FontMetrics testMetrics = draw.getFontMetrics(font);
+                if(testMetrics.stringWidth("Poniedziałek")>dayFrameWidth-2*gap){
+                    break;
+                }
+                else{
+                    font = new Font(font.getName(), font.getStyle(), font.getSize()+1);
+                }
             }
-            timeName = cal.get(Calendar.DAY_OF_MONTH)+"."+cal.get(Calendar.MONTH)+"."+cal.get(Calendar.YEAR);
-            advance = ((dayFrameWidth-2*gap)-metrics.stringWidth(timeName))/2;
-            draw.drawString(timeName, gap+gap+(dayFrameWidth*count)+(gap*count)+advance, 2*gap+fontHeight*2);   
+            FontMetrics metrics = draw.getFontMetrics(font);
             
-            
-            
-            
-            draw.setClip(0, 0, this.getWidth(), this.getHeight());
+            //calendar stuff
+            Calendar cal = Calendar.getInstance();
+            int day = cal.get(Calendar.DAY_OF_WEEK)-2;
+            if(day==-1){
+                day = 6;
+            }
+            for(int countIn = 0; countIn<cal.get(Calendar.DAY_OF_WEEK); countIn++){
+                cal.roll(Calendar.DATE, false);
+            }
+            //draw buttons
+            JPanel buttonsContainer = new JPanel();
+            buttonsContainer.setBackground(Color.WHITE);
+            buttonsContainer.setSize(this.getParent().getWidth(), this.getParent().getHeight()-gap*2);
+            buttonsContainer.setLocation(0, gap);
+            buttonsContainer.setLayout(new BoxLayout(buttonsContainer, BoxLayout.LINE_AXIS));
+            for(int count = 0; count<5; count++){
+                //create button
+                JPanel button = new JPanel();
+                button.setLayout(new BoxLayout(button, BoxLayout.PAGE_AXIS));
+                button.setBackground(Color.WHITE);
+                button.setVisible(true);
+                if(count!=day){
+                    button.setBorder(BorderFactory.createLineBorder(Color.black));
+                }
+                else{
+                    button.setBorder(BorderFactory.createLineBorder(Color.black, 2));
+                }
+                //set labels
+                String timeName = "";
+                switch(count){
+                    case 0:
+                        timeName = "Poniedziałek";
+                        break;
+                    case 1:
+                        timeName = "Wtorek";
+                        break;
+                    case 2:
+                        timeName = "Środa";
+                        break;
+                    case 3:
+                        timeName = "Czwartek";
+                        break;
+                    case 4:
+                        timeName = "Piątek";
+                        break;
+                }
+                JLabel label = new JLabel(timeName);
+                label.setFont(font);
+                label.setAlignmentX(Component.CENTER_ALIGNMENT);
+                timeName = cal.get(Calendar.DAY_OF_MONTH)+"."+cal.get(Calendar.MONTH)+"."+cal.get(Calendar.YEAR);
+                JLabel subLabel = new JLabel(timeName);
+                subLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                button.setMaximumSize(new Dimension(dayFrameWidth, this.getHeight()));
+                button.add(label);
+                button.add(subLabel);
+                buttonsContainer.add(Box.createHorizontalStrut(gap));
+                buttonsContainer.add(button);
+            }
+            buttonsContainer.add(Box.createHorizontalStrut(gap));
+            this.add(buttonsContainer);
         }
-        cal = Calendar.getInstance();
     }
 
     private void drawSelectedDay(Graphics2D draw){

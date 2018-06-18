@@ -79,5 +79,4 @@ public class Frame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private com.theglorious.re4der.harmonogram.Displaying.Loop loop1;
     // End of variables declaration//GEN-END:variables
-    //private com.theglorious.re4der.harmonogram.Displaying.Loop loop1;
 }
