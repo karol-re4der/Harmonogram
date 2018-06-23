@@ -2,11 +2,11 @@ package com.theglorious.re4der.harmonogram.Displaying;
 
 import javax.swing.JFrame;
 
-public class Frame extends javax.swing.JFrame {
+public class Frame extends javax.swing.JFrame{
 
     public Frame() {
         initComponents();
-        setExtendedState(JFrame.MAXIMIZED_BOTH); 
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
     @SuppressWarnings("unchecked")
