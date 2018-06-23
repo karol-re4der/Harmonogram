@@ -57,6 +57,8 @@ public class SaverLoader {
         JSONObject obj = new JSONObject(JSONText);
         JSONArray array = obj.getJSONArray("array");
         
+        int id = 0;
+        
         for(int i = 0; i<array.length(); i++){
             Block block = new Block();
             
@@ -64,8 +66,6 @@ public class SaverLoader {
             block.dayOfWeek = array.getJSONObject(i).getInt("dayOfWeek");
             block.startsAt = array.getJSONObject(i).getInt("startsAt");
             block.lengthMinutes = array.getJSONObject(i).getInt("length");
-
-            
             
             //pass strings
             block.title = array.getJSONObject(i).getString("title");
@@ -73,6 +73,16 @@ public class SaverLoader {
             block.room = array.getJSONObject(i).getString("room");
             block.teacher = array.getJSONObject(i).getString("teacher");
             block.type = array.getJSONObject(i).getString("type");
+            
+            //set id
+            for(int ii = 0; ii<blocks.size(); ii++){
+                if(blocks.get(ii).id==id){
+                    id++;
+                    ii = 0;
+                }
+            }
+            block.id = id;
+            id++;
             
             blocks.add(block);
         }

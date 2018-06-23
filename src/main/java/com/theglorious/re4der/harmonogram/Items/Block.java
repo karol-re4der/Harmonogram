@@ -1,7 +1,5 @@
 package com.theglorious.re4der.harmonogram.Items;
 
-import java.util.LinkedList;
-
 public class Block {
     
     //obligatory
@@ -15,8 +13,8 @@ public class Block {
     public String title;
     
     //display
-    public boolean active = false;
     public int level = 0;
+    public int id;
     
     
     public Block(){

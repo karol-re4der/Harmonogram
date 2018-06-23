@@ -98,9 +98,9 @@ public class DaySelection {
                 button.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mousePressed(MouseEvent e) {
-                        System.out.println(finalCount);
                         Switch.chosenDay = finalCount;
                         Switch.switcher = 1;
+                        parent.reloadBlocks();
                         parent.repaint();
                         parent.cleanPanel();
                     }
