@@ -17,26 +17,29 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class DaySelection {
-    public DaySelection(){
-        
+    
+    private static final Switch settings = Switch.getInstance();
+    private Loop parent;
+    
+    public DaySelection(Loop parent){
+        this.parent = parent;
     }
-    public void render(Loop parent, Graphics2D draw, int gap){
+    public void render(Graphics2D draw){
         parent.cleanPanel();
-        int dayFrameWidth = (int)(parent.getWidth()-(6*gap))/5;
+        int dayFrameWidth = (int)(parent.getWidth()-(6*settings.gap))/5;
 
         if(true){
             //determine font size
             Font font = new Font("Arial" , Font.PLAIN, 1);
             while(true){
                 FontMetrics testMetrics = draw.getFontMetrics(font);
-                if(testMetrics.stringWidth("Poniedziałek")>dayFrameWidth-2*gap){
+                if(testMetrics.stringWidth("Poniedziałek")>dayFrameWidth-2*settings.gap){
                     break;
                 }
                 else{
                     font = new Font(font.getName(), font.getStyle(), font.getSize()+1);
                 }
             }
-            FontMetrics metrics = draw.getFontMetrics(font);
             
             //calendar stuff
             Calendar cal = Calendar.getInstance();
@@ -50,8 +53,8 @@ public class DaySelection {
             //draw buttons
             JPanel buttonsContainer = new JPanel();
             buttonsContainer.setBackground(Color.WHITE);
-            buttonsContainer.setSize(parent.getParent().getWidth(), parent.getParent().getHeight()-gap*2);
-            buttonsContainer.setLocation(0, gap);
+            buttonsContainer.setSize(parent.getParent().getWidth(), parent.getParent().getHeight()-settings.gap*2);
+            buttonsContainer.setLocation(0, settings.gap);
             buttonsContainer.setLayout(new BoxLayout(buttonsContainer, BoxLayout.LINE_AXIS));
             for(int count = 0; count<5; count++){
                 //create button
@@ -98,18 +101,17 @@ public class DaySelection {
                 button.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mousePressed(MouseEvent e) {
-                        Switch.chosenDay = finalCount;
-                        Switch.switcher = 1;
+                        settings.chosenDay = finalCount;
+                        settings.switcher = 1;
                         parent.reloadBlocks();
                         parent.repaint();
-                        parent.cleanPanel();
                     }
                 });
                 //add to container
-                buttonsContainer.add(Box.createHorizontalStrut(gap));
+                buttonsContainer.add(Box.createHorizontalStrut(settings.gap));
                 buttonsContainer.add(button);
             }
-            buttonsContainer.add(Box.createHorizontalStrut(gap));
+            buttonsContainer.add(Box.createHorizontalStrut(settings.gap));
             parent.add(buttonsContainer);
         }
     }

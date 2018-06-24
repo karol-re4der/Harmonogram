@@ -3,7 +3,6 @@ package com.theglorious.re4der.harmonogram.Displaying;
 import com.theglorious.re4der.harmonogram.Items.Block;
 import com.theglorious.re4der.harmonogram.Items.BlockPanel;
 import com.theglorious.re4der.harmonogram.Switch;
-import com.theglorious.re4der.harmonogram.Utilties.SaverLoader;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -12,10 +11,8 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionAdapter;
 import java.util.Calendar;
-import java.util.LinkedList;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -24,6 +21,9 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 public class SelectedDay{
+    
+    private static final Switch settings = Switch.getInstance();
+    
     public int hourSize = 0;
     public int startHour = 0;
     public int endHour = 24;
@@ -43,7 +43,7 @@ public class SelectedDay{
         field.setBackground(new Color(0, 0, 0, 0));
         field.setBorder(null);
         field.setEditable(true);
-        if(!Switch.editMode.active){
+        if(!settings.editMode){
             field.setFocusable(false);
             field.setCursor(null);
             field.setEditable(false);
@@ -67,7 +67,7 @@ public class SelectedDay{
         return field;
     }
     
-    private BlockPanel createBlock(Block block, int gap){
+    private BlockPanel createBlock(Block block){
         BlockPanel jBlock = new BlockPanel(block.id);
         
         //some weirdo mathematics
@@ -79,12 +79,12 @@ public class SelectedDay{
         int blockWidth = (int) ((block.lengthMinutes/60f)*hourSize);
 
 
-        int levelShift = (blockHeight+gap)*(block.level+startLevel);
+        int levelShift = (blockHeight+settings.gap)*(block.level+startLevel);
         //
         
         //setting location and size
-        int x = gap+shift;
-        int y = levelShift+gap*5;
+        int x = settings.gap+shift;
+        int y = levelShift+settings.gap*5;
         jBlock.setLocation(x, y);
         jBlock.setSize(blockWidth, blockHeight);
         jBlock.setPreferredSize(new Dimension(blockWidth, blockHeight));
@@ -95,8 +95,8 @@ public class SelectedDay{
         jBlock.addMouseMotionListener(new  MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e){
-                if(Switch.editMode.active){
-                    float clickTime = (e.getXOnScreen()-parent.getParent().getParent().getParent().getParent().getX()-2*gap);
+                if(settings.editMode){
+                    float clickTime = (e.getXOnScreen()-parent.getParent().getParent().getParent().getParent().getX()-2*settings.gap);
                     clickTime/=hourSize;
                     int hour = (int)clickTime;
                     float minute = clickTime-hour;
@@ -112,14 +112,14 @@ public class SelectedDay{
             private final Color hoverColor = new Color(Color.GRAY.brighter().getRed()+10, Color.GRAY.brighter().getGreen()+10, Color.GRAY.brighter().getBlue()+10);
             @Override
             public void mouseReleased(MouseEvent e){
-                if(Switch.editMode.active){
+                if(settings.editMode){
                     parent.repaint();
                 }
             }
             @Override
             public void mouseClicked(MouseEvent e){
-                if(Switch.editMode.active){
-                    if(Switch.erasingMode.active){
+                if(settings.editMode){
+                    if(settings.erasingMode){
                         parent.removeBlock(((BlockPanel)e.getComponent()).id);
                         parent.repaint();
                     }
@@ -171,7 +171,7 @@ public class SelectedDay{
         //-type
         JTextField type = createField(block.type);
         jBlock.add(type);
-        jBlock.add(Box.createVerticalStrut((int)(gap*2.3)));
+        jBlock.add(Box.createVerticalStrut((int)(settings.gap*2.3)));
         //-place and room
         JPanel container = new JPanel();
         container.addMouseListener(new MouseAdapter(){ //dispatching hovering mouse event
@@ -200,29 +200,29 @@ public class SelectedDay{
         return jBlock;
     }
     
-    public void render(Loop parent, Graphics2D draw, int gap){
+    public void render(Graphics2D draw){
         parent.cleanPanel();
         
         
         draw.setColor(Color.black);
-        draw.drawLine(gap, gap+3*gap, parent.getWidth()-2*gap, gap+3*gap);
-        draw.drawLine(gap, gap, parent.getWidth()-2*gap, gap);
+        draw.drawLine(settings.gap, settings.gap+3*settings.gap, parent.getWidth()-2*settings.gap, settings.gap+3*settings.gap);
+        draw.drawLine(settings.gap, settings.gap, parent.getWidth()-2*settings.gap, settings.gap);
         
-        hourSize = (parent.getWidth()-2*gap)/(endHour-startHour);
+        hourSize = (parent.getWidth()-2*settings.gap)/(endHour-startHour);
         
         //borders
-        for(int count = 0; count<(endHour-startHour);count++){
-            draw.drawLine(gap+hourSize*count, gap, gap+hourSize*count, parent.getHeight()-gap);
-            if(Switch.grid.active){
-                draw.drawLine(gap+hourSize*count+1, gap, gap+hourSize*count+1, parent.getHeight()-gap);
-                draw.drawLine(gap+hourSize*count-1, gap, gap+hourSize*count-1, parent.getHeight()-gap);
+        for(int count = 0; count<(endHour-startHour); count++){
+            draw.drawLine(settings.gap+hourSize*count, settings.gap, settings.gap+hourSize*count, parent.getHeight()-settings.gap);
+            if(settings.gridMode){
+                draw.drawLine(settings.gap+hourSize*count+1, settings.gap, settings.gap+hourSize*count+1, parent.getHeight()-settings.gap);
+                draw.drawLine(settings.gap+hourSize*count-1, settings.gap, settings.gap+hourSize*count-1, parent.getHeight()-settings.gap);
             }
             
             //set font
             Font font = new Font("Arial", Font.PLAIN, 1);
             FontMetrics metrics = draw.getFontMetrics(font);
             while(true){
-                if(metrics.getHeight()<=gap*2){
+                if(metrics.getHeight()<=settings.gap*2){
                     font = new Font(font.getName(), font.getStyle(), font.getSize()+1);
                     metrics = draw.getFontMetrics(font);
                 }
@@ -233,48 +233,36 @@ public class SelectedDay{
             draw.setFont(font);
             
             //draw hours
-            draw.setClip(gap+hourSize*count, gap, hourSize-gap, 3*gap);
-            draw.drawString(String.valueOf(startHour+count)+":00", gap+(gap/2)+count*hourSize, gap*3+(gap/2));
+            draw.setClip(settings.gap+hourSize*count, settings.gap, hourSize-settings.gap, 3*settings.gap);
+            draw.drawString(String.valueOf(startHour+count)+":00", settings.gap+(settings.gap/2)+count*hourSize, settings.gap*3+(settings.gap/2));
             draw.setClip(0, 0, parent.getWidth(), parent.getHeight());
 
         }
         
         //draw additional grid
-        if(Switch.grid.active){
+        if(settings.gridMode){
             int howMuch = endHour-startHour;
             draw.setColor(Color.black);
             for(int count = 0; count<howMuch; count++){
                 for(int countIns = 0; countIns<4; countIns++){
-                    draw.drawLine(gap+count*hourSize+countIns*(hourSize/4), 4*gap, gap+count*hourSize+countIns*(hourSize/4), parent.getHeight()-gap);
+                    draw.drawLine(settings.gap+count*hourSize+countIns*(hourSize/4), 4*settings.gap, settings.gap+count*hourSize+countIns*(hourSize/4), parent.getHeight()-settings.gap);
                 }
             }
         }
 
         
         //draw blocks
-        blockHeight = 10*gap;
+        blockHeight = 10*settings.gap;
         for(int bi = 0; bi<parent.blocks.size(); bi++){
-            if(parent.blocks.get(bi).dayOfWeek==Switch.chosenDay){
+            if(parent.blocks.get(bi).dayOfWeek==settings.chosenDay){
                 //set level
                 parent.bubbleSort(parent.blocks);
-                parent.blocks.get(bi).level = 0;//startLevel;
-                for(int i = 0; i<parent.blocks.size(); i++){
-                    if(parent.blocks.get(i).dayOfWeek==Switch.chosenDay){
-                        if(parent.blocks.get(i)!=parent.blocks.get(bi)){
-                            if(parent.blocks.get(i).level==parent.blocks.get(bi).level){
-                                if(parent.blocks.get(bi).startsAt>=parent.blocks.get(i).startsAt && parent.blocks.get(bi).startsAt<=parent.blocks.get(i).startsAt+parent.blocks.get(i).lengthMinutes || parent.blocks.get(bi).startsAt+parent.blocks.get(bi).lengthMinutes>=parent.blocks.get(i).startsAt && parent.blocks.get(bi).startsAt+parent.blocks.get(bi).lengthMinutes<=parent.blocks.get(i).startsAt+parent.blocks.get(i).lengthMinutes){
-                                    parent.blocks.get(bi).level++;
-                                    i = 0;
-                                }
-                            }
-                        }
-                    }
-                }
+                parent.levelizeBlocks(parent.blocks);
                 
                 
                 //render block
                 if(parent.blocks.get(bi).level+startLevel>=0){
-                    parent.add(createBlock(parent.blocks.get(bi), gap));
+                    parent.add(createBlock(parent.blocks.get(bi)));
                 }
             }
         }
@@ -290,10 +278,10 @@ public class SelectedDay{
         currMinute = (int)(test*hourSize);
         currTimeSize = currHour+currMinute;
 
-        if(cal.get(Calendar.DAY_OF_WEEK)-2==Switch.chosenDay){
-            draw.drawLine(gap+currTimeSize-1, gap*4, gap+currTimeSize-1, parent.getHeight()-gap);
-            draw.drawLine(gap+currTimeSize, gap*4, gap+currTimeSize, parent.getHeight()-gap);
-            draw.drawLine(gap+currTimeSize+1, gap*4, gap+currTimeSize+1, parent.getHeight()-gap);
+        if(cal.get(Calendar.DAY_OF_WEEK)-2==settings.chosenDay){
+            draw.drawLine(settings.gap+currTimeSize-1, settings.gap*4, settings.gap+currTimeSize-1, parent.getHeight()-settings.gap);
+            draw.drawLine(settings.gap+currTimeSize, settings.gap*4, settings.gap+currTimeSize, parent.getHeight()-settings.gap);
+            draw.drawLine(settings.gap+currTimeSize+1, settings.gap*4, settings.gap+currTimeSize+1, parent.getHeight()-settings.gap);
         } 
     }
 }

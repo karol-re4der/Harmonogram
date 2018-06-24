@@ -35,7 +35,11 @@ public class SaverLoader {
             }
         }
     }
-     
+    
+    public void switchFile(String newPath){
+        fileName=newPath;
+    }
+    
     public LinkedList<Block> loadBlocks(LinkedList<Block> blocks){
         String JSONText = "";
 
@@ -75,14 +79,7 @@ public class SaverLoader {
             block.type = array.getJSONObject(i).getString("type");
             
             //set id
-            for(int ii = 0; ii<blocks.size(); ii++){
-                if(blocks.get(ii).id==id){
-                    id++;
-                    ii = 0;
-                }
-            }
-            block.id = id;
-            id++;
+            block.setID(blocks);
             
             blocks.add(block);
         }

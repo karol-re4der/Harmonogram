@@ -9,6 +9,10 @@ public class Frame extends javax.swing.JFrame{
         setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
+    public Loop getChild(){
+        return loop1;
+    }
+    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {

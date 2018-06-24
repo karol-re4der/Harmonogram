@@ -2,24 +2,24 @@ package com.theglorious.re4der.harmonogram.Displaying;
 
 import com.theglorious.re4der.harmonogram.Switch;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 
 public class Interface {
-    public Interface(){
-        
+    
+    private static final Switch settings = Switch.getInstance();
+    private Loop parent;
+    
+    public Interface(Loop parent){
+        this.parent = parent;
     }
         
     private JLabel newButton(String text, int buttonWidth, int buttonHeight){
@@ -50,27 +50,27 @@ public class Interface {
         return button;
     }
     
-    public void render(Loop parent, int gap){
+    public void render(){
         int buttonWidth = 100;
         int buttonHeight = 30;
         //create panel
         JPanel interfacePanel = new JPanel();
         interfacePanel.setBorder(BorderFactory.createLineBorder(Color.black));
-        interfacePanel.setSize(parent.getWidth(), buttonHeight+2*gap);
-        interfacePanel.setLocation(0, parent.getHeight()-(buttonHeight+2*gap));
+        interfacePanel.setSize(parent.getWidth(), buttonHeight+2*settings.gap);
+        interfacePanel.setLocation(0, parent.getHeight()-(buttonHeight+2*settings.gap));
         interfacePanel.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         interfacePanel.setBackground(Color.WHITE);
-        interfacePanel.setLayout(new FlowLayout(FlowLayout.RIGHT, gap, gap));
+        interfacePanel.setLayout(new FlowLayout(FlowLayout.RIGHT, settings.gap, settings.gap));
         
         //back button
         JLabel button = newButton("Back", buttonWidth, buttonHeight);
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                Switch.switcher = 0;
-                Switch.editMode.active = false;
-                Switch.addingMode.active = false;
-                Switch.erasingMode.active = false;
+                settings.switcher = 0;
+                settings.editMode = false;
+                settings.addingMode = false;
+                settings.erasingMode = false;
                 parent.synchronize();
                 parent.repaint();
                 parent.cleanPanel();
@@ -80,15 +80,14 @@ public class Interface {
         
         //grid button
         button = newButton("Grid", buttonWidth, buttonHeight);
-        if(Switch.grid.active){
+        if(settings.gridMode){
             button.setBackground(Color.GRAY.brighter());
         }
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                Switch.grid.active = !Switch.grid.active;
+                settings.gridMode = !settings.gridMode;
                 parent.repaint();
-                parent.cleanPanel();
             }
         });
         interfacePanel.add(button);
@@ -101,30 +100,30 @@ public class Interface {
         
         //edit button 
         button = newButton("Edit", buttonWidth, buttonHeight);
-        if(Switch.editMode.active){
+        if(settings.editMode){
             button.setBackground(Color.GRAY.brighter());
         }
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                Switch.editMode.active = !Switch.editMode.active;
-                if(!Switch.editMode.active){
-                    Switch.addingMode.active = false;
-                    Switch.erasingMode.active = false;
+                settings.editMode = !settings.editMode;
+                if(!settings.editMode){
+                    settings.addingMode = false;
+                    settings.erasingMode = false;
                 }
                 parent.repaint();
                 parent.cleanPanel();
             }
         });
         interfacePanel.add(button);
-        if(Switch.editMode.active){
+        if(settings.editMode){
             //save button
             button = newButton("Save", buttonWidth, buttonHeight);
             button.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
                     parent.save();
-                    Switch.editMode.active = false;
+                    settings.editMode = false;
                     parent.repaint();
                     parent.cleanPanel();
                 }
@@ -133,14 +132,14 @@ public class Interface {
 
             //remove button
             button = newButton("Remove", buttonWidth, buttonHeight);
-            if(Switch.erasingMode.active){
+            if(settings.erasingMode){
                 button.setBackground(Color.GRAY.brighter());
             }
             button.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
-                    Switch.erasingMode.active = !Switch.erasingMode.active;
-                    Switch.addingMode.active = false;
+                    settings.erasingMode = !settings.erasingMode;
+                    settings.addingMode = false;
                     parent.repaint();
                     parent.cleanPanel();
                 }
@@ -149,14 +148,14 @@ public class Interface {
 
             //add button
             button = newButton("Add", buttonWidth, buttonHeight);
-            if(Switch.addingMode.active){
+            if(settings.addingMode){
                 button.setBackground(Color.GRAY.brighter());
             }
             button.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
-                    Switch.addingMode.active = !Switch.addingMode.active;
-                    Switch.erasingMode.active = false;
+                    settings.addingMode = !settings.addingMode;
+                    settings.erasingMode = false;
                     parent.repaint();
                     parent.cleanPanel();
                 }

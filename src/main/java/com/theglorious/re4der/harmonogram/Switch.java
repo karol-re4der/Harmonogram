@@ -1,14 +1,20 @@
 package com.theglorious.re4der.harmonogram;
 
-import com.theglorious.re4der.harmonogram.Items.EnvelopedBoolean;
-import java.util.Calendar;
-
 public class Switch {
-    public static int switcher = 0;
-    public static int chosenDay = 0;
-    public static Calendar chosenDate;
-    public static EnvelopedBoolean editMode = new EnvelopedBoolean(false);
-    public static EnvelopedBoolean grid = new EnvelopedBoolean(false);
-    public static EnvelopedBoolean addingMode = new EnvelopedBoolean(false);
-    public static EnvelopedBoolean erasingMode = new EnvelopedBoolean(false);
+    
+    //singleton stuff
+    private static final Switch singleton = new Switch();
+    private Switch(){};
+    public static Switch getInstance(){
+        return singleton;
+    }
+    //end of singleton stuff
+    
+    public static int switcher = 0;             //1 - day selection, 2 - selected day
+    public static int chosenDay = 0;            //active day of week
+    public static boolean gridMode = false;
+    public static boolean editMode = false;
+    public static boolean addingMode = false;
+    public static boolean erasingMode = false;
+    public static final int gap = 10;
 }

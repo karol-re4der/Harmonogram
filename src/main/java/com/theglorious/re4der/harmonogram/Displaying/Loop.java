@@ -16,11 +16,9 @@ import java.util.LinkedList;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
 
 public class Loop extends JLayeredPane implements KeyListener, MouseListener{
     
-    public int gap = 10;
     public int dayFrameWidth;
     public int activeEntry = 0;
     public int maxEntries = 5;
@@ -29,9 +27,11 @@ public class Loop extends JLayeredPane implements KeyListener, MouseListener{
     
     private Graphics2D draw;
     
-    private final Interface userInterface = new Interface();
-    private final DaySelection daySelection = new DaySelection();
+    private final Interface userInterface = new Interface(this);
+    private final DaySelection daySelection = new DaySelection(this);
     private final SelectedDay selectedDay = new SelectedDay(this);
+    
+    private static final Switch settings = Switch.getInstance();
 
     @Override
     public void paint(Graphics g){
@@ -50,15 +50,15 @@ public class Loop extends JLayeredPane implements KeyListener, MouseListener{
         draw.setColor(Color.white);
         draw.fillRect(0, 0, this.getWidth(), this.getHeight());
         
-        if(Switch.switcher==0){
-            daySelection.render(this, draw, gap);
+        if(settings.switcher==0){
+            daySelection.render( draw);
         }
-        else if(Switch.switcher==1){
-            selectedDay.render(this, draw, gap);
-            userInterface.render(this, gap);
+        else if(settings.switcher==1){
+            selectedDay.render(draw);
+            userInterface.render();
         }
     }
-
+    
     public void save(){
         SaverLoader sload = new SaverLoader();
         synchronize();
@@ -116,6 +116,26 @@ public class Loop extends JLayeredPane implements KeyListener, MouseListener{
         }
     }
     
+    public void levelizeBlocks(LinkedList<Block> list){
+        for(int bi = 0; bi<blocks.size(); bi++){
+            if(blocks.get(bi).dayOfWeek==settings.chosenDay){
+                blocks.get(bi).level = 0;        //startLevel;
+                for(int i = 0; i<blocks.size(); i++){
+                    if(blocks.get(i).dayOfWeek==settings.chosenDay){
+                        if(blocks.get(i)!=blocks.get(bi)){
+                            if(blocks.get(i).level==blocks.get(bi).level){
+                                if(blocks.get(bi).startsAt>=blocks.get(i).startsAt && blocks.get(bi).startsAt<=blocks.get(i).startsAt+blocks.get(i).lengthMinutes || blocks.get(bi).startsAt+blocks.get(bi).lengthMinutes>=blocks.get(i).startsAt && blocks.get(bi).startsAt+blocks.get(bi).lengthMinutes<=blocks.get(i).startsAt+blocks.get(i).lengthMinutes){
+                                    blocks.get(bi).level++;
+                                    i = 0;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     public void moveTimeFrame(boolean advancing){
         if(advancing){
             if(selectedDay.startHour+1<24 && selectedDay.endHour+1<=24){
@@ -129,9 +149,6 @@ public class Loop extends JLayeredPane implements KeyListener, MouseListener{
                 selectedDay.endHour--;
             }
         }
-        System.out.println(selectedDay.startHour);
-        System.out.println(selectedDay.endHour);
-
     }
     
     public void expandTimeFrame(boolean expanding){
@@ -157,7 +174,7 @@ public class Loop extends JLayeredPane implements KeyListener, MouseListener{
         selectedDay.endHour = 0;
         selectedDay.startHour = 24;
         for(Block block: blocks){
-            if(block.dayOfWeek==Switch.chosenDay){
+            if(block.dayOfWeek==settings.chosenDay){
                 if(block.startsAt/60<=selectedDay.startHour){
                     selectedDay.startHour = block.startsAt/60-1;
                 }
@@ -181,10 +198,13 @@ public class Loop extends JLayeredPane implements KeyListener, MouseListener{
         block.teacher = "Teacher";
         block.room = "Room";
         block.place = "Place";
-        block.dayOfWeek = Switch.chosenDay;
+        block.dayOfWeek = settings.chosenDay;
         block.lengthMinutes = 60;
-
+        block.setID(blocks);
+        
         blocks.add(block);
+        bubbleSort(blocks);
+        levelizeBlocks(blocks);
         this.repaint();
     }
 
@@ -238,15 +258,15 @@ public class Loop extends JLayeredPane implements KeyListener, MouseListener{
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        if(Switch.addingMode.active){
+        if(settings.addingMode){
             //compute timeAt
             double minuteSize = selectedDay.hourSize/60f;
-            int positionAt = e.getX()-gap;
+            int positionAt = e.getX()-settings.gap;
             int timeAt = (int) (positionAt/minuteSize)+selectedDay.startHour*60;
             //compute levelAt
-            positionAt = e.getY()-gap*5;
-            int levelAt = positionAt/(selectedDay.blockHeight+gap);
-            int tak = positionAt-levelAt*(selectedDay.blockHeight+gap);
+            positionAt = e.getY()-settings.gap*5;
+            int levelAt = positionAt/(selectedDay.blockHeight+settings.gap);
+            int tak = positionAt-levelAt*(selectedDay.blockHeight+settings.gap);
             if(tak>selectedDay.blockHeight || tak<0){
                 levelAt = -1;
             }

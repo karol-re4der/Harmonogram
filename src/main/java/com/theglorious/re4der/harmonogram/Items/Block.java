@@ -1,5 +1,7 @@
 package com.theglorious.re4der.harmonogram.Items;
 
+import java.util.LinkedList;
+
 public class Block {
     
     //obligatory
@@ -28,5 +30,16 @@ public class Block {
         this.teacher = teacher;
         this.lengthMinutes = lengthMinutes;
         this.title = title;
+    }
+    public void setID(LinkedList<Block> blocks){
+        int fooId = 0;
+        //set id
+        for(int ii = 0; ii<blocks.size(); ii++){
+            if(blocks.get(ii).id==fooId){
+                fooId++;
+                ii = 0;
+            }
+        }
+        id = fooId;
     }
 }
