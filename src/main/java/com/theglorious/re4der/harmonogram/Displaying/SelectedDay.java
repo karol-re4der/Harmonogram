@@ -256,7 +256,7 @@ public class SelectedDay{
         for(int bi = 0; bi<parent.blocks.size(); bi++){
             if(parent.blocks.get(bi).dayOfWeek==settings.chosenDay){
                 //set level
-                parent.bubbleSort(parent.blocks);
+                parent.bubbleSort();
                 parent.levelizeBlocks(parent.blocks);
                 
                 

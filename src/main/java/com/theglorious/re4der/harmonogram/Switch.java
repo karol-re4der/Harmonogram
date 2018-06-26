@@ -1,5 +1,6 @@
 package com.theglorious.re4der.harmonogram;
 
+//Singleton pattern
 public class Switch {
     
     //singleton stuff
@@ -17,4 +18,6 @@ public class Switch {
     public static boolean addingMode = false;
     public static boolean erasingMode = false;
     public static final int gap = 10;
+    public static final int buttonWidth = 100;
+    public static final int buttonHeight = 30;
 }

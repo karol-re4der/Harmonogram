@@ -12,6 +12,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.Arrays;
 import java.util.LinkedList;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
@@ -90,11 +91,11 @@ public class Loop extends JLayeredPane implements KeyListener, MouseListener{
         blocks = sl.loadBlocks(blocks);
     }
     
-    public void bubbleSort(LinkedList<Block> list){
+    public void bubbleSort(){
         //move to array
-        Block[] array = new Block[list.size()];
-        for(int i = 0; i<list.size(); i++){
-            array[i] = list.get(i);
+        Block[] array = new Block[blocks.size()];
+        for(int i = 0; i<blocks.size(); i++){
+            array[i] = blocks.get(i);
         }
         
         //sort an array
@@ -110,10 +111,8 @@ public class Loop extends JLayeredPane implements KeyListener, MouseListener{
         }
         
         //move back to list
-        list = new LinkedList();
-        for(Block i: array){
-            list.add(i);
-        }
+        blocks = new LinkedList();
+        blocks.addAll(Arrays.asList(array));
     }
     
     public void levelizeBlocks(LinkedList<Block> list){
@@ -203,7 +202,7 @@ public class Loop extends JLayeredPane implements KeyListener, MouseListener{
         block.setID(blocks);
         
         blocks.add(block);
-        bubbleSort(blocks);
+        bubbleSort();
         levelizeBlocks(blocks);
         this.repaint();
     }

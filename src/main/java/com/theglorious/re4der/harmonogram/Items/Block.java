@@ -18,19 +18,30 @@ public class Block {
     public int level = 0;
     public int id;
     
+    public boolean equals(Block block){
+        if(dayOfWeek!=block.dayOfWeek)
+            return false;
+        if(startsAt!=block.startsAt)
+            return false;
+        if(lengthMinutes!=block.lengthMinutes)
+            return false;
+        if(!title.equals(block.title))
+            return false;
+        if(!teacher.equals(block.teacher))
+            return false;
+        if(!type.equals(block.type))
+            return false;
+        if(!place.equals(block.place))
+            return false;
+        if(!room.equals(block.room))
+            return false;
+        return true;
+    }
     
     public Block(){
         
     }
-    public Block(int day, String place, String room, String type, String teacher, int startsAt, int lengthMinutes, String title){
-        this.dayOfWeek = day;
-        this.place = place;
-        this.place = room;
-        this.type = type;
-        this.teacher = teacher;
-        this.lengthMinutes = lengthMinutes;
-        this.title = title;
-    }
+
     public void setID(LinkedList<Block> blocks){
         int fooId = 0;
         //set id

@@ -22,48 +22,55 @@ public class Interface {
         this.parent = parent;
     }
         
-    private JLabel newButton(String text, int buttonWidth, int buttonHeight){
+    //Factory Pattern
+    private JLabel newButton(String text, String type){
         JLabel button = new JLabel();
-        button.setText(text);
-        button.setSize(buttonWidth, buttonHeight);
-        button.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
-        button.setOpaque(true);
-        button.setBorder(new LineBorder(Color.black));
-        button.setHorizontalAlignment(SwingConstants.CENTER);
-        button.setVerticalAlignment(SwingConstants.CENTER);
-        button.setBackground(Color.GRAY);
-        button.addMouseListener(new MouseAdapter(){
-            private Color cachedColor = Color.GRAY;
-            private final Color hoverColor = new Color(Color.GRAY.brighter().getRed()+10, Color.GRAY.brighter().getGreen()+10, Color.GRAY.brighter().getBlue()+10);
-            @Override
-            public void mouseEntered(MouseEvent e){
-                if(!e.getComponent().getBackground().equals(hoverColor)){
-                    cachedColor = e.getComponent().getBackground();
+        if(type.equals("button")){
+            button.setText(text);
+            button.setSize(settings.buttonWidth, settings.buttonHeight);
+            button.setPreferredSize(new Dimension(settings.buttonWidth, settings.buttonHeight));
+            button.setOpaque(true);
+            button.setBorder(new LineBorder(Color.black));
+            button.setHorizontalAlignment(SwingConstants.CENTER);
+            button.setVerticalAlignment(SwingConstants.CENTER);
+            button.setBackground(Color.GRAY);
+            button.addMouseListener(new MouseAdapter(){
+                private Color cachedColor = Color.GRAY;
+                private final Color hoverColor = new Color(Color.GRAY.brighter().getRed()+10, Color.GRAY.brighter().getGreen()+10, Color.GRAY.brighter().getBlue()+10);
+                @Override
+                public void mouseEntered(MouseEvent e){
+                    if(!e.getComponent().getBackground().equals(hoverColor)){
+                        cachedColor = e.getComponent().getBackground();
+                    }
+                    e.getComponent().setBackground(hoverColor);
                 }
-                e.getComponent().setBackground(hoverColor);
-            }
-            @Override
-            public void mouseExited(MouseEvent e){
-                e.getComponent().setBackground(cachedColor);
-            }
-        });
+                @Override
+                public void mouseExited(MouseEvent e){
+                    e.getComponent().setBackground(cachedColor);
+                }
+            });
+        }
+        else if(type.equals("blank")){
+            button.setSize(new Dimension(settings.buttonWidth, settings.buttonHeight));
+            button.setPreferredSize(new Dimension(settings.buttonWidth, settings.buttonHeight));
+            button.setOpaque(false);
+            button.setBorder(null);
+        }
         return button;
     }
     
     public void render(){
-        int buttonWidth = 100;
-        int buttonHeight = 30;
         //create panel
         JPanel interfacePanel = new JPanel();
         interfacePanel.setBorder(BorderFactory.createLineBorder(Color.black));
-        interfacePanel.setSize(parent.getWidth(), buttonHeight+2*settings.gap);
-        interfacePanel.setLocation(0, parent.getHeight()-(buttonHeight+2*settings.gap));
+        interfacePanel.setSize(parent.getWidth(), settings.buttonHeight+2*settings.gap);
+        interfacePanel.setLocation(0, parent.getHeight()-(settings.buttonHeight+2*settings.gap));
         interfacePanel.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
         interfacePanel.setBackground(Color.WHITE);
         interfacePanel.setLayout(new FlowLayout(FlowLayout.RIGHT, settings.gap, settings.gap));
         
         //back button
-        JLabel button = newButton("Back", buttonWidth, buttonHeight);
+        JLabel button = newButton("Back", "button");
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -79,7 +86,7 @@ public class Interface {
         interfacePanel.add(button);
         
         //grid button
-        button = newButton("Grid", buttonWidth, buttonHeight);
+        button = newButton("Grid", "button");
         if(settings.gridMode){
             button.setBackground(Color.GRAY.brighter());
         }
@@ -93,13 +100,11 @@ public class Interface {
         interfacePanel.add(button);
         
         //space button
-        button = newButton("", buttonWidth, buttonHeight);
-        button.setOpaque(false);
-        button.setBorder(null);
+        button = newButton("", "blank");
         interfacePanel.add(button);
         
         //edit button 
-        button = newButton("Edit", buttonWidth, buttonHeight);
+        button = newButton("Edit", "button");
         if(settings.editMode){
             button.setBackground(Color.GRAY.brighter());
         }
@@ -118,7 +123,7 @@ public class Interface {
         interfacePanel.add(button);
         if(settings.editMode){
             //save button
-            button = newButton("Save", buttonWidth, buttonHeight);
+            button = newButton("Save", "button");
             button.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
@@ -131,7 +136,7 @@ public class Interface {
             interfacePanel.add(button);
 
             //remove button
-            button = newButton("Remove", buttonWidth, buttonHeight);
+            button = newButton("Remove", "button");
             if(settings.erasingMode){
                 button.setBackground(Color.GRAY.brighter());
             }
@@ -147,7 +152,7 @@ public class Interface {
             interfacePanel.add(button);
 
             //add button
-            button = newButton("Add", buttonWidth, buttonHeight);
+            button = newButton("Add", "button");
             if(settings.addingMode){
                 button.setBackground(Color.GRAY.brighter());
             }
